@@ -17,9 +17,9 @@ import { getAccessLogs } from '@/services/api';
 
 interface LogEntry {
   id: number;
-  punch_type: 'in' | 'out';
-  punch_time: string;
-  device_name: string;
+  type: string;
+  time: string;
+  location: string;
 }
 
 interface GroupedLogs {
@@ -61,7 +61,7 @@ function groupLogsByDate(logs: LogEntry[]): GroupedLogs[] {
 
   for (const log of logs) {
     try {
-      const d = new Date(log.punch_time);
+      const d = new Date(log.time);
       const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
       if (!map[key]) {
         map[key] = [];
@@ -69,14 +69,14 @@ function groupLogsByDate(logs: LogEntry[]): GroupedLogs[] {
       }
       map[key].push(log);
     } catch {
-      const key = log.punch_time;
+      const key = log.time;
       if (!map[key]) { map[key] = []; order.push(key); }
       map[key].push(log);
     }
   }
 
   return order.map((key) => ({
-    dateLabel: formatDateLabel(map[key][0].punch_time),
+    dateLabel: formatDateLabel(map[key][0].time),
     logs: map[key],
   }));
 }
@@ -110,8 +110,8 @@ export default function LogsScreen() {
 
   const onRefresh = () => { setRefreshing(true); fetchLogs(true); };
 
-  const checkIns = logs.filter((l) => l.punch_type === 'in').length;
-  const checkOuts = logs.filter((l) => l.punch_type === 'out').length;
+  const checkIns = logs.filter((l) => l.type === 'Entry').length;
+  const checkOuts = logs.filter((l) => l.type === 'Exit').length;
   const grouped = groupLogsByDate(logs);
 
   if (isLoading && logs.length === 0) {
@@ -201,21 +201,21 @@ export default function LogsScreen() {
               >
                 <View style={[
                   styles.logIconBg,
-                  { backgroundColor: log.punch_type === 'in' ? c.successLight : c.warningLight },
+                  { backgroundColor: log.type === 'Entry' ? c.successLight : c.warningLight },
                 ]}>
                   <IconSymbol
-                    name={log.punch_type === 'in' ? 'arrow.down.left' : 'arrow.up.right'}
+                    name={log.type === 'Entry' ? 'arrow.down.left' : 'arrow.up.right'}
                     size={18}
-                    color={log.punch_type === 'in' ? c.success : c.warning}
+                    color={log.type === 'Entry' ? c.success : c.warning}
                   />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.logType, { color: c.text }]}>
-                    {log.punch_type === 'in' ? 'Checked In' : 'Checked Out'}
+                    {log.type === 'Entry' ? 'Checked In' : 'Checked Out'}
                   </Text>
-                  <Text style={[styles.logDevice, { color: c.textMuted }]}>{log.device_name}</Text>
+                  <Text style={[styles.logDevice, { color: c.textMuted }]}>{log.location}</Text>
                 </View>
-                <Text style={[styles.logTime, { color: c.text }]}>{formatTime(log.punch_time)}</Text>
+                <Text style={[styles.logTime, { color: c.text }]}>{formatTime(log.time)}</Text>
               </View>
             ))}
           </View>

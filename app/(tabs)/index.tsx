@@ -36,6 +36,13 @@ interface DashboardData {
     total_due: number;
     amount_paid: number;
   } | null;
+  notices: {
+    id: number;
+    title: string;
+    message: string;
+    date: string;
+    type: 'warning' | 'info' | 'success';
+  }[] | null;
 }
 
 export default function DashboardScreen() {
@@ -224,6 +231,19 @@ export default function DashboardScreen() {
           </View>
         </View>
 
+        {/* Quick Actions */}
+        <View style={styles.quickActions}>
+          <TouchableOpacity 
+            style={[styles.actionBtn, { backgroundColor: c.card, borderColor: c.cardBorder }]}
+            onPress={() => router.push('/visitor' as any)}
+          >
+            <View style={[styles.actionIconBg, { backgroundColor: c.accentLight }]}>
+              <IconSymbol name="person.badge.plus.fill" size={20} color={c.accent} />
+            </View>
+            <Text style={[styles.actionText, { color: c.text }]}>Invite Guest</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Access Status */}
         <View style={[styles.card, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
           <Text style={[styles.cardTitle, { color: c.text }]}>Biometric Access</Text>
@@ -262,6 +282,35 @@ export default function DashboardScreen() {
             </View>
           </View>
         </View>
+
+        {/* Notices Section */}
+        {data?.notices && data.notices.length > 0 && (
+          <View style={[styles.card, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
+            <Text style={[styles.cardTitle, { color: c.text }]}>Notice Board</Text>
+            {data.notices.map((notice, index) => (
+              <View key={notice.id}>
+                <View style={styles.noticeItem}>
+                  <View style={[
+                    styles.noticeIconBg, 
+                    { backgroundColor: notice.type === 'warning' ? c.warningLight : notice.type === 'success' ? c.successLight : c.accentLight }
+                  ]}>
+                    <IconSymbol 
+                      name={notice.type === 'warning' ? 'exclamationmark.triangle.fill' : notice.type === 'success' ? 'checkmark.circle.fill' : 'info.circle.fill'} 
+                      size={18} 
+                      color={notice.type === 'warning' ? c.warning : notice.type === 'success' ? c.success : c.accent} 
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.noticeTitle, { color: c.text }]}>{notice.title}</Text>
+                    <Text style={[styles.noticeMessage, { color: c.textSecondary }]}>{notice.message}</Text>
+                    <Text style={[styles.noticeDate, { color: c.textMuted }]}>{formatDate(notice.date)}</Text>
+                  </View>
+                </View>
+                {index < data.notices!.length - 1 && <View style={[styles.divider, { backgroundColor: c.separator }]} />}
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Sign Out Button */}
         <TouchableOpacity
@@ -338,6 +387,10 @@ const styles = StyleSheet.create({
   statBox: { flex: 1, padding: Spacing.lg, borderRadius: Radius.md, alignItems: 'center' },
   statLabel: { fontSize: 12, fontWeight: '500', marginBottom: 4 },
   statValue: { fontSize: 18, fontWeight: '700' },
+  quickActions: { flexDirection: 'row', gap: Spacing.md, marginBottom: Spacing.lg },
+  actionBtn: { flex: 1, padding: Spacing.lg, borderRadius: Radius.lg, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  actionIconBg: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', marginBottom: Spacing.sm },
+  actionText: { fontSize: 13, fontWeight: '600' },
   accessRow: {
     flexDirection: 'row', alignItems: 'center',
     gap: Spacing.sm, marginBottom: Spacing.sm,
@@ -348,6 +401,12 @@ const styles = StyleSheet.create({
   leaseRow: { flexDirection: 'row', alignItems: 'center' },
   leaseDate: { fontSize: 15, fontWeight: '600', marginTop: 4 },
   leaseDivider: { width: 1, height: 36, marginHorizontal: Spacing.lg },
+  noticeItem: { flexDirection: 'row', gap: Spacing.md, paddingVertical: Spacing.sm },
+  noticeIconBg: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
+  noticeTitle: { fontSize: 15, fontWeight: '700', marginBottom: 2 },
+  noticeMessage: { fontSize: 14, lineHeight: 20 },
+  noticeDate: { fontSize: 12, marginTop: 6, fontWeight: '500' },
+  divider: { height: StyleSheet.hairlineWidth, marginVertical: Spacing.md },
   signOutButton: {
     marginTop: Spacing.md, paddingVertical: 14, borderRadius: Radius.md,
     borderWidth: 1, alignItems: 'center',

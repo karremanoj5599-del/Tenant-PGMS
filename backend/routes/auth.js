@@ -108,4 +108,32 @@ router.post('/update-pin', authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * POST /api/auth/register-push-token
+ */
+router.post('/register-push-token', authMiddleware, async (req, res) => {
+  try {
+    const tenantId = req.tenant.tenant_id;
+    const { pushToken } = req.body;
+
+    if (!pushToken) {
+      return res.status(400).json({ error: 'Push token is required.' });
+    }
+
+    if (dbType === 'supabase') {
+      await db('tenants').where('tenant_id', tenantId).update({
+        expo_push_token: pushToken
+      });
+    } else {
+      db.prepare('UPDATE tenants SET expo_push_token = ? WHERE tenant_id = ?')
+        .run(pushToken, tenantId);
+    }
+
+    res.json({ success: true, message: 'Push token registered successfully.' });
+  } catch (err) {
+    console.error('Push token registration error:', err);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+});
+
 module.exports = router;

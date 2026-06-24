@@ -58,14 +58,14 @@ router.post('/create', authMiddleware, async (req, res) => {
         tenant_id: tenantId,
         category,
         description,
-        status: 'Open',
+        status: 'Pending',
         user_id: adminUserId
       }).returning('id');
       ticketId = newTicket.id;
     } else {
       const result = db.prepare(`
         INSERT INTO tickets (tenant_id, category, description, status, user_id)
-        VALUES (?, ?, ?, 'Open', ?)
+        VALUES (?, ?, ?, 'Pending', ?)
       `).run(tenantId, category, description, adminUserId);
       ticketId = result.lastInsertRowid;
     }

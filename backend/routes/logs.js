@@ -19,11 +19,11 @@ router.get('/', authMiddleware, async (req, res) => {
     let logs;
     if (dbType === 'supabase') {
       logs = await db('attendance_logs')
-        .where('user_id', tenantId.toString())
+        .where('tenant_id', tenantId.toString())
         .orderBy('punch_time', 'desc')
         .limit(50);
     } else {
-      logs = db.prepare('SELECT * FROM attendance_logs WHERE user_id = ? ORDER BY punch_time DESC LIMIT 50').all(tenantId.toString());
+      logs = db.prepare('SELECT * FROM attendance_logs WHERE tenant_id = ? ORDER BY punch_time DESC LIMIT 50').all(tenantId.toString());
     }
 
     res.json({

@@ -14,6 +14,9 @@ const dashboardRoutes = require('./routes/dashboard');
 const paymentRoutes = require('./routes/payments');
 const ticketRoutes = require('./routes/tickets');
 const logRoutes = require('./routes/logs');
+const messRoutes = require('./routes/mess');
+const visitorRoutes = require('./routes/visitors');
+const notificationRoutes = require('./routes/notifications');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -50,6 +53,9 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/logs', logRoutes);
+app.use('/api/mess', messRoutes);
+app.use('/api/visitors', visitorRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

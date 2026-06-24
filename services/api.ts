@@ -54,14 +54,14 @@ export async function login(mobile: string, password: string) {
 
 export async function updatePin(oldPin: string, newPin: string) {
   return request('/auth/update-pin', {
-    method: 'PUT',
+    method: 'POST',
     body: JSON.stringify({ oldPin, newPin }),
   });
 }
 
 // ─── Dashboard ──────────────────────────────────────
 export async function getDashboard() {
-  return request('/dashboard');
+  return request('/dashboard/overview');
 }
 
 // ─── Payments ───────────────────────────────────────
@@ -92,7 +92,7 @@ export async function getTickets() {
 }
 
 export async function createTicket(category: string, description: string) {
-  return request('/tickets', {
+  return request('/tickets/create', {
     method: 'POST',
     body: JSON.stringify({ category, description }),
   });
@@ -102,3 +102,36 @@ export async function createTicket(category: string, description: string) {
 export async function getAccessLogs(limit = 50, offset = 0) {
   return request(`/logs?limit=${limit}&offset=${offset}`);
 }
+
+// ─── Mess Menu ──────────────────────────────────────
+export async function getMessMenu() {
+  return request('/mess/menu');
+}
+
+export async function toggleMealOptOut(id: string, optedOut: boolean) {
+  return request('/mess/opt-out', {
+    method: 'POST',
+    body: JSON.stringify({ id, optedOut }),
+  });
+}
+
+// ─── Visitors ───────────────────────────────────────
+export async function getVisitors() {
+  return request('/visitors');
+}
+
+export async function inviteVisitor(data: { name: string; phone: string; date: string; purpose: string }) {
+  return request('/visitors/invite', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+// ─── Generic Methods ────────────────────────────────
+const api = {
+  get: (endpoint: string) => request(endpoint),
+  post: (endpoint: string, body: any) => request(endpoint, { method: 'POST', body: JSON.stringify(body) }),
+  put: (endpoint: string, body?: any) => request(endpoint, { method: 'PUT', body: body ? JSON.stringify(body) : undefined }),
+};
+
+export default api;

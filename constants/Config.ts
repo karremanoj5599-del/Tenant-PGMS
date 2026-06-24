@@ -16,7 +16,7 @@ if (Platform.OS === 'android' && (host === 'localhost' || host === '127.0.0.1'))
 }
 
 export const Config = {
-  API_BASE: `http://${host === 'localhost' ? '127.0.0.1' : host}:5000/api/tenant`,
+  API_BASE: `http://${host === 'localhost' ? '127.0.0.1' : host}:3001/api`,
 
   // YOUR STRIPE PUBLISHABLE KEY (Insert here)
   STRIPE_PUBLISHABLE_KEY: 'sb_publishable_Z_4atlsatj2Xez3NbW0SPQ_TchzfY5z',

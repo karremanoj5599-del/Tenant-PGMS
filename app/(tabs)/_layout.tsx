@@ -59,6 +59,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="mess"
+        options={{
+          title: 'Food',
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="fork.knife" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="support"
         options={{
           title: 'Support',
@@ -70,6 +77,13 @@ export default function TabLayout() {
         options={{
           title: 'Logs',
           tabBarIcon: ({ color }) => <IconSymbol size={26} name="clock.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          title: 'Alerts',
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="bell.fill" color={color} />,
         }}
       />
       <Tabs.Screen

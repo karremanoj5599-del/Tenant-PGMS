@@ -16,7 +16,7 @@ import { IconSymbol, IconSymbolName } from '@/components/ui/icon-symbol';
 import { Colors, Spacing, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/contexts/AuthContext';
-import { updatePin, getDashboard } from '@/services/api';
+import api, { updatePin, getDashboard } from '@/services/api';
 
 export default function ProfileScreen() {
   const colorScheme = useColorScheme() ?? 'dark';
@@ -31,6 +31,10 @@ export default function ProfileScreen() {
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Bed Reallocation state
+  const [bedRequestReason, setBedRequestReason] = useState('');
+  const [isRequestingBed, setIsRequestingBed] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -79,6 +83,31 @@ export default function ProfileScreen() {
       else Alert.alert('Update Failed', msg);
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleBedChangeRequest = async () => {
+    if (!bedRequestReason) {
+      if (Platform.OS === 'web') alert('Please provide a reason or preference.');
+      else Alert.alert('Error', 'Please provide a reason or preference.');
+      return;
+    }
+    setIsRequestingBed(true);
+    try {
+      // Create a ticket with 'Bed Change' category
+      await api.post('/tickets/create', {
+        category: 'Bed Reallocation',
+        description: bedRequestReason
+      });
+      if (Platform.OS === 'web') alert('Your bed change request has been submitted to the admin.');
+      else Alert.alert('Success', 'Your bed change request has been submitted to the admin.');
+      setBedRequestReason('');
+    } catch (err: any) {
+      const msg = err?.message || 'Could not submit request.';
+      if (Platform.OS === 'web') alert('Failed: ' + msg);
+      else Alert.alert('Request Failed', msg);
+    } finally {
+      setIsRequestingBed(false);
     }
   };
 
@@ -136,15 +165,41 @@ export default function ProfileScreen() {
               <ActivityIndicator color={c.accent} style={{ marginVertical: 20 }} />
             ) : (
               <>
-                <InfoRow label="Room Number" value={fullTenant?.room} icon="house.fill" />
+                <InfoRow label="Room Number" value={fullTenant?.room_number} icon="house.fill" />
                 <View style={[styles.divider, { backgroundColor: c.separator }]} />
-                <InfoRow label="Bed Layout" value={`${fullTenant?.bed} Bed / ${fullTenant?.sharing}`} icon="bed.double.fill" />
+                <InfoRow label="Bed Layout" value={`${fullTenant?.bed_number} Bed`} icon="bed.double.fill" />
                 <View style={[styles.divider, { backgroundColor: c.separator }]} />
-                <InfoRow label="Joining Date" value={fullTenant?.join_date} icon="calendar" />
+                <InfoRow label="Joining Date" value={fullTenant?.joining_date} icon="calendar" />
                 <View style={[styles.divider, { backgroundColor: c.separator }]} />
                 <InfoRow label="Status" value={fullTenant?.access_status === 'active' ? 'Verified' : 'Pending'} icon="checkmark.shield.fill" />
               </>
             )}
+          </View>
+
+          {/* Room Services Card */}
+          <View style={[styles.card, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
+            <Text style={[styles.cardTitle, { color: c.text }]}>Room Services</Text>
+            
+            <Text style={[styles.inputLabel, { color: c.textMuted }]}>Request Bed/Room Change</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: c.backgroundTertiary, color: c.text, borderColor: c.separator }]}
+              placeholder="E.g., I would like to move to Room 102..."
+              placeholderTextColor={c.textMuted}
+              value={bedRequestReason}
+              onChangeText={setBedRequestReason}
+            />
+
+            <TouchableOpacity
+              style={[styles.updateButton, { backgroundColor: c.accent }, isRequestingBed && { opacity: 0.7 }]}
+              onPress={handleBedChangeRequest}
+              disabled={isRequestingBed}
+            >
+              {isRequestingBed ? (
+                <ActivityIndicator color="#FFF" size="small" />
+              ) : (
+                <Text style={styles.updateButtonText}>Submit Request</Text>
+              )}
+            </TouchableOpacity>
           </View>
 
           {/* Security Card */}

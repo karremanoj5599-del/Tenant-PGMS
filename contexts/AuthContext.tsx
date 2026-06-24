@@ -67,6 +67,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
+  // Sync token to API module (important for Hot Module Reloading)
+  useEffect(() => {
+    setAuthToken(token);
+  }, [token]);
+
   const signIn = async (newToken: string, tenantInfo: TenantInfo) => {
     setToken(newToken);
     setTenant(tenantInfo);

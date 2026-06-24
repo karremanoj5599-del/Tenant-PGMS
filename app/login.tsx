@@ -52,7 +52,8 @@ export default function LoginScreen() {
     if (!validate()) return;
     setIsLoading(true);
     try {
-      const result = await login(mobile.trim(), password.trim());
+      const formattedMobile = mobile.trim().startsWith('+') ? mobile.trim() : `+91${mobile.trim()}`;
+      const result = await login(formattedMobile, password.trim());
       if (result.success && result.token) {
         await signIn(result.token, result.tenant);
         router.replace('/(tabs)');

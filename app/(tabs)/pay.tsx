@@ -58,11 +58,12 @@ export default function PayScreen() {
         getBilling(),
         getPaymentHistory(),
       ]);
-      // The API returns { success: true, history: [...] } for both
-      if (billingRes.success && billingRes.history && billingRes.history.length > 0) {
-        setBilling(billingRes.history[0]);
+      // The backend returns { success: true, billing: {...} } for billing
+      if (billingRes.success && billingRes.billing) {
+        setBilling(billingRes.billing);
       }
-      setHistory(historyRes.history ?? []);
+      // The backend returns { success: true, payments: [...] } for history
+      setHistory(historyRes.payments ?? []);
     } catch (err: any) {
       setError(err?.message || 'Failed to load billing.');
     } finally {

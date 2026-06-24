@@ -6,6 +6,7 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { usePushNotifications } from '@/services/pushNotifications';
 
 const TenantDarkTheme = {
   ...DarkTheme,
@@ -61,6 +62,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const { isLoggedIn } = useAuth();
+  
+  // Register for push notifications when logged in
+  usePushNotifications(isLoggedIn);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? TenantDarkTheme : TenantLightTheme}>

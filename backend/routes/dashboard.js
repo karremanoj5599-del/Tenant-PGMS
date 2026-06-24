@@ -44,13 +44,13 @@ router.get('/overview', authMiddleware, async (req, res) => {
     let recentLogs;
     if (dbType === 'supabase') {
       recentLogs = await db('attendance_logs')
-        .where('user_id', tenantId.toString()) // 'user_id' in attendance_logs is the tenant PIN
+        .where('tenant_id', tenantId.toString()) // or biometric_pin depending on what is stored
         .orderBy('punch_time', 'desc')
         .limit(3);
     } else {
       recentLogs = db.prepare(`
         SELECT * FROM attendance_logs 
-        WHERE user_id = ? 
+        WHERE tenant_id = ? 
         ORDER BY punch_time DESC 
         LIMIT 3
       `).all(tenantId.toString());
@@ -71,7 +71,11 @@ router.get('/overview', authMiddleware, async (req, res) => {
         type: log.status === 0 ? 'Entry' : 'Exit',
         time: log.punch_time,
         location: log.device_sn || 'Main Gate'
-      }))
+      })),
+      notices: [
+        { id: 1, title: 'Water Supply Maintenance', message: 'Water supply will be interrupted tomorrow between 10 AM and 2 PM due to maintenance work.', date: new Date().toISOString(), type: 'warning' },
+        { id: 2, title: 'Rent Reminder', message: 'Please ensure your rent is paid before the 5th to avoid late fees.', date: new Date(Date.now() - 86400000).toISOString(), type: 'info' }
+      ]
     });
 
   } catch (err) {
