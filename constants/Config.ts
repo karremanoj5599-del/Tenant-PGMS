@@ -15,8 +15,10 @@ if (Platform.OS === 'android' && (host === 'localhost' || host === '127.0.0.1'))
   host = '10.0.2.2';
 }
 
+const API_BASE = process.env.EXPO_PUBLIC_API_URL || `http://${host === 'localhost' ? '127.0.0.1' : host}:3001/api`;
+
 export const Config = {
-  API_BASE: `http://${host === 'localhost' ? '127.0.0.1' : host}:3001/api`,
+  API_BASE,
 
   // YOUR STRIPE PUBLISHABLE KEY (Insert here)
   STRIPE_PUBLISHABLE_KEY: 'sb_publishable_Z_4atlsatj2Xez3NbW0SPQ_TchzfY5z',
