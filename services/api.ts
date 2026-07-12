@@ -54,14 +54,14 @@ export async function login(mobile: string, password: string) {
 
 export async function updatePin(oldPin: string, newPin: string) {
   return request('/auth/update-pin', {
-    method: 'POST',
+    method: 'PUT',
     body: JSON.stringify({ oldPin, newPin }),
   });
 }
 
 // ─── Dashboard ──────────────────────────────────────
 export async function getDashboard() {
-  return request('/dashboard/overview');
+  return request('/dashboard');
 }
 
 // ─── Payments ───────────────────────────────────────
@@ -92,9 +92,16 @@ export async function getTickets() {
 }
 
 export async function createTicket(category: string, description: string) {
-  return request('/tickets/create', {
+  return request('/tickets', {
     method: 'POST',
     body: JSON.stringify({ category, description }),
+  });
+}
+
+export async function rateTicket(id: number, rating: number, feedback?: string) {
+  return request(`/tickets/${id}/rate`, {
+    method: 'PUT',
+    body: JSON.stringify({ rating, feedback }),
   });
 }
 
@@ -115,13 +122,24 @@ export async function toggleMealOptOut(id: string, optedOut: boolean) {
   });
 }
 
+export async function scanMessQR(userId: string) {
+  return request('/mess/scan', {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId }),
+  });
+}
+
+export async function getMessHistory() {
+  return request('/mess/history');
+}
+
 // ─── Visitors ───────────────────────────────────────
 export async function getVisitors() {
   return request('/visitors');
 }
 
 export async function inviteVisitor(data: { name: string; phone: string; date: string; purpose: string }) {
-  return request('/visitors/invite', {
+  return request('/visitors', {
     method: 'POST',
     body: JSON.stringify(data),
   });

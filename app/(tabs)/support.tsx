@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors, Spacing, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { getTickets, createTicket } from '@/services/api';
+import { getTickets, createTicket, rateTicket } from '@/services/api';
 
 type TicketStatus = 'Pending' | 'In Progress' | 'Resolved';
 type TicketCategory = 'Electrical' | 'Plumbing' | 'Cleaning' | 'Other';
@@ -26,6 +26,8 @@ interface Ticket {
   description: string;
   status: TicketStatus;
   admin_notes?: string;
+  rating?: number | null;
+  feedback?: string | null;
   created_at: string;
 }
 
@@ -72,6 +74,15 @@ export default function SupportScreen() {
       Alert.alert('Submit Failed', err?.message || 'Could not submit ticket. Please try again.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleRate = async (id: number, rating: number) => {
+    try {
+      await rateTicket(id, rating);
+      fetchTickets(true);
+    } catch (err: any) {
+      Alert.alert('Rating Failed', 'Could not submit your rating.');
     }
   };
 
@@ -209,6 +220,31 @@ export default function SupportScreen() {
                     <Text style={[styles.adminNoteText, { color: c.textSecondary }]}>{ticket.admin_notes}</Text>
                   </View>
                 ) : null}
+                
+                {/* Rating Component */}
+                {ticket.status === 'Resolved' && (
+                  <View style={[styles.ratingContainer, { borderTopColor: c.separator }]}>
+                    <Text style={[styles.ratingLabel, { color: c.textSecondary }]}>
+                      {ticket.rating ? 'Your Rating:' : 'Rate the resolution:'}
+                    </Text>
+                    <View style={styles.starsRow}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <TouchableOpacity 
+                          key={star} 
+                          onPress={() => !ticket.rating && handleRate(ticket.id, star)}
+                          disabled={!!ticket.rating}
+                        >
+                          <IconSymbol 
+                            name={(ticket.rating || 0) >= star ? 'star.fill' : 'star'} 
+                            size={20} 
+                            color={(ticket.rating || 0) >= star ? '#f59e0b' : c.textMuted} 
+                          />
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                )}
+
                 <Text style={[styles.ticketDate, { color: c.textMuted }]}>{formatDate(ticket.created_at)}</Text>
               </View>
             );
@@ -264,5 +300,8 @@ const styles = StyleSheet.create({
   adminNoteBox: { marginTop: Spacing.sm, borderRadius: Radius.sm, padding: Spacing.md },
   adminNoteLabel: { fontSize: 11, fontWeight: '700', marginBottom: 2 },
   adminNoteText: { fontSize: 13 },
+  ratingContainer: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  ratingLabel: { fontSize: 13, fontWeight: '600' },
+  starsRow: { flexDirection: 'row', gap: 6 },
   ticketDate: { fontSize: 12, marginTop: Spacing.sm },
 });

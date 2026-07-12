@@ -235,6 +235,16 @@ export default function DashboardScreen() {
         <View style={styles.quickActions}>
           <TouchableOpacity 
             style={[styles.actionBtn, { backgroundColor: c.card, borderColor: c.cardBorder }]}
+            onPress={() => router.push('/scan' as any)}
+          >
+            <View style={[styles.actionIconBg, { backgroundColor: c.accentLight }]}>
+              <IconSymbol name="qrcode.viewfinder" size={20} color={c.accent} />
+            </View>
+            <Text style={[styles.actionText, { color: c.text }]}>Scan Mess QR</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[styles.actionBtn, { backgroundColor: c.card, borderColor: c.cardBorder }]}
             onPress={() => router.push('/visitor' as any)}
           >
             <View style={[styles.actionIconBg, { backgroundColor: c.accentLight }]}>

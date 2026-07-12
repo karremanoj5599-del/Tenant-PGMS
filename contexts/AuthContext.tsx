@@ -13,6 +13,7 @@ interface TenantInfo {
   room?: string;
   bed?: string;
   sharing?: string;
+  user_id?: number;
 }
 
 interface AuthContextType {

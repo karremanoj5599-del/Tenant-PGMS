@@ -14,14 +14,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconSymbol, IconSymbolName } from '@/components/ui/icon-symbol';
 import { Colors, Spacing, Radius } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/contexts/AuthContext';
 import api, { updatePin, getDashboard } from '@/services/api';
+import ThemeSettingsModal from '@/components/ThemeSettingsModal';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function ProfileScreen() {
-  const colorScheme = useColorScheme() ?? 'dark';
-  const c = Colors[colorScheme];
+  const { colors: c, fontFamily, scaleFont } = useTheme();
   const { tenant: authTenant, signOut } = useAuth();
+  
+  const [showThemeModal, setShowThemeModal] = useState(false);
 
   const [fullTenant, setFullTenant] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -131,14 +133,15 @@ export default function ProfileScreen() {
         <IconSymbol name={icon} size={18} color={c.accent} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={[styles.infoLabel, { color: c.textMuted }]}>{label}</Text>
-        <Text style={[styles.infoValue, { color: c.text }]}>{value || '—'}</Text>
+        <Text style={[styles.infoLabel, { color: c.textMuted, fontFamily, fontSize: scaleFont(12) }]}>{label}</Text>
+        <Text style={[styles.infoValue, { color: c.text, fontFamily, fontSize: scaleFont(15) }]}>{value || '—'}</Text>
       </View>
     </View>
   );
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: c.background }]}>
+      <ThemeSettingsModal visible={showThemeModal} onClose={() => setShowThemeModal(false)} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
@@ -250,10 +253,19 @@ export default function ProfileScreen() {
               {isUpdating ? (
                 <ActivityIndicator color="#FFF" size="small" />
               ) : (
-                <Text style={styles.updateButtonText}>Change PIN</Text>
+                <Text style={[styles.updateButtonText, { fontFamily, fontSize: scaleFont(15) }]}>Change PIN</Text>
               )}
             </TouchableOpacity>
           </View>
+
+          {/* Theme Settings Button */}
+          <TouchableOpacity
+            style={[styles.themeBtn, { borderColor: c.separator, backgroundColor: c.card }]}
+            onPress={() => setShowThemeModal(true)}
+          >
+            <IconSymbol name="paintpalette.fill" size={18} color={c.accent} />
+            <Text style={[styles.themeBtnText, { color: c.text, fontFamily, fontSize: scaleFont(15) }]}>Theme & Display Settings</Text>
+          </TouchableOpacity>
 
           {/* Sign Out */}
           <TouchableOpacity
@@ -261,7 +273,7 @@ export default function ProfileScreen() {
             onPress={handleSignOut}
           >
             <IconSymbol name="rectangle.portrait.and.arrow.right" size={18} color={c.danger} />
-            <Text style={[styles.signOutText, { color: c.danger }]}>Sign Out from Account</Text>
+            <Text style={[styles.signOutText, { color: c.danger, fontFamily, fontSize: scaleFont(15) }]}>Sign Out from Account</Text>
           </TouchableOpacity>
 
           <Text style={[styles.version, { color: c.textMuted }]}>
@@ -295,8 +307,14 @@ const styles = StyleSheet.create({
   signOutBtn: { 
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', 
     gap: 8, paddingVertical: 16, borderRadius: Radius.md, 
-    borderWidth: 1, marginTop: Spacing.lg 
+    borderWidth: 1, marginTop: Spacing.sm
   },
-  signOutText: { fontSize: 15, fontWeight: '700' },
+  themeBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', 
+    gap: 8, paddingVertical: 16, borderRadius: Radius.md, 
+    borderWidth: 1, marginTop: Spacing.lg, marginBottom: Spacing.md
+  },
+  themeBtnText: { fontWeight: '700' },
+  signOutText: { fontWeight: '700' },
   version: { textAlign: 'center', fontSize: 12, marginTop: 32 },
 });
