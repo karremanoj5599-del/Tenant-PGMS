@@ -15,7 +15,18 @@ if (Platform.OS === 'android' && (host === 'localhost' || host === '127.0.0.1'))
   host = '10.0.2.2';
 }
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL || `http://${host === 'localhost' ? '127.0.0.1' : host}:3001/api`;
+let API_BASE = process.env.EXPO_PUBLIC_API_URL;
+
+if (!API_BASE) {
+  if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    // If running in a production web environment (e.g. Vercel), use the deployed backend URL
+    API_BASE = 'https://pgms-nu.vercel.app/api';
+  } else {
+    // Local development fallback
+    API_BASE = `http://${host === 'localhost' ? '127.0.0.1' : host}:3001/api`;
+  }
+}
+
 
 export const Config = {
   API_BASE,
