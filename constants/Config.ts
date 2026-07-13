@@ -20,10 +20,10 @@ let API_BASE = process.env.EXPO_PUBLIC_API_URL;
 if (!API_BASE) {
   if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
     // If running in a production web environment (e.g. Vercel), use the deployed backend URL
-    API_BASE = 'https://pgms-nu.vercel.app/api';
+    API_BASE = 'https://pgms-nu.vercel.app/api/tenant';
   } else {
     // Local development fallback
-    API_BASE = `http://${host === 'localhost' ? '127.0.0.1' : host}:3001/api`;
+    API_BASE = `http://${host === 'localhost' ? '127.0.0.1' : host}:5000/api/tenant`;
   }
 }
 
