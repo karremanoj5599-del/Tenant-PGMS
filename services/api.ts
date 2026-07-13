@@ -141,7 +141,12 @@ export async function getVisitors() {
 export async function inviteVisitor(data: { name: string; phone: string; date: string; purpose: string }) {
   return request('/visitors', {
     method: 'POST',
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      name: data.name,
+      phone: data.phone,
+      visit_date: data.date,
+      purpose: data.purpose
+    }),
   });
 }
 

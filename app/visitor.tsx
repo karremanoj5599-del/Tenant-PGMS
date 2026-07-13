@@ -87,10 +87,10 @@ export default function VisitorScreen() {
             <View key={v.id} style={[styles.visitorCard, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
               <View>
                 <Text style={[styles.vName, { color: c.text }]}>{v.name}</Text>
-                <Text style={[styles.vDate, { color: c.textSecondary }]}>{v.date} • {v.phone}</Text>
+                <Text style={[styles.vDate, { color: c.textSecondary }]}>{(v.visit_date || v.date)?.substring(0, 10)} • {v.phone}</Text>
               </View>
               <View style={[styles.passCodeBadge, { backgroundColor: c.accentLight }]}>
-                <Text style={[styles.passCodeText, { color: c.accent }]}>PIN: {v.passCode}</Text>
+                <Text style={[styles.passCodeText, { color: c.accent }]}>PIN: {v.pass_code || v.passCode}</Text>
               </View>
             </View>
           ))

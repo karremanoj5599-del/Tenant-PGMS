@@ -5,6 +5,7 @@ import { Config } from '../../constants/Config';
 import QRCode from 'react-native-qrcode-svg';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { getVisitors, inviteVisitor } from '@/services/api';
 
 export default function GuestsScreen() {
   const { tenant, token } = useAuth();
@@ -25,10 +26,7 @@ export default function GuestsScreen() {
 
   const fetchVisitors = async () => {
     try {
-      const response = await fetch(`${Config.API_BASE}/visitors`, {
-        headers: { 'x-user-id': tenant?.user_id?.toString() || '', 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json();
+      const data = await getVisitors();
       if (data.success) {
         setVisitors(data.visitors);
       }
@@ -46,12 +44,7 @@ export default function GuestsScreen() {
     }
     
     try {
-      const response = await fetch(`${Config.API_BASE}/visitors`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-user-id': tenant?.user_id?.toString() || '', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ name, phone, visit_date: visitDate, purpose })
-      });
-      const data = await response.json();
+      const data = await inviteVisitor({ name, phone, date: visitDate, purpose });
       if (data.success) {
         Alert.alert('Success', 'Guest pass created successfully');
         setModalVisible(false);
@@ -62,9 +55,9 @@ export default function GuestsScreen() {
       } else {
         Alert.alert('Error', data.error || 'Failed to create pass');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      Alert.alert('Error', 'Failed to connect to server');
+      Alert.alert('Error', err.message || 'Failed to connect to server');
     }
   };
 
