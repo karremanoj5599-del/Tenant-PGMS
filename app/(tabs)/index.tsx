@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,7 +18,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors, Spacing, Radius } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/contexts/AuthContext';
-import { getDashboard } from '@/services/api';
+import { getDashboard, submitVacateNotice, createTicket } from '@/services/api';
 
 interface DashboardData {
   tenant: {
@@ -28,6 +30,7 @@ interface DashboardData {
     join_date: string;
     expiry_date: string;
     access_status: string;
+    advance_vacate_date?: string | null;
   };
   billing: {
     current_balance: number;
@@ -55,6 +58,70 @@ export default function DashboardScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Stay Management States
+  const [isVacateModalOpen, setIsVacateModalOpen] = useState(false);
+  const [isReallocateModalOpen, setIsReallocateModalOpen] = useState(false);
+  
+  const [vacateDateInput, setVacateDateInput] = useState('');
+  const [isSubmittingVacate, setIsSubmittingVacate] = useState(false);
+  
+  const [sharingType, setSharingType] = useState('2 Sharing');
+  const [shiftDate, setShiftDate] = useState('');
+  const [changeReason, setChangeReason] = useState('');
+  const [isSubmittingReallocate, setIsSubmittingReallocate] = useState(false);
+
+  const handleVacateSubmit = async () => {
+    if (!vacateDateInput) {
+      Alert.alert('Error', 'Please enter a vacate date.');
+      return;
+    }
+    // Simple regex check for YYYY-MM-DD
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(vacateDateInput)) {
+      Alert.alert('Error', 'Please enter date in YYYY-MM-DD format.');
+      return;
+    }
+
+    setIsSubmittingVacate(true);
+    try {
+      await submitVacateNotice(vacateDateInput);
+      Alert.alert('✅ Notice Submitted', 'Your vacate date has been recorded. Admin has been notified.');
+      setIsVacateModalOpen(false);
+      setVacateDateInput('');
+      fetchDashboard(true);
+    } catch (err: any) {
+      Alert.alert('Submit Failed', err?.message || 'Could not submit vacate notice.');
+    } finally {
+      setIsSubmittingVacate(false);
+    }
+  };
+
+  const handleReallocateSubmit = async () => {
+    if (!shiftDate || !changeReason.trim()) {
+      Alert.alert('Error', 'Please fill in target shift date and reason.');
+      return;
+    }
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(shiftDate)) {
+      Alert.alert('Error', 'Please enter shift date in YYYY-MM-DD format.');
+      return;
+    }
+
+    setIsSubmittingReallocate(true);
+    try {
+      const description = `[Bed Reallocation Request]\nPreferred sharing: ${sharingType}\nTarget move date: ${shiftDate}\nReason: ${changeReason.trim()}`;
+      await createTicket('Bed Reallocation', description);
+      Alert.alert('✅ Request Sent', 'Your bed reallocation request has been submitted to support tickets.');
+      setIsReallocateModalOpen(false);
+      setShiftDate('');
+      setChangeReason('');
+    } catch (err: any) {
+      Alert.alert('Submit Failed', err?.message || 'Could not submit reallocation request.');
+    } finally {
+      setIsSubmittingReallocate(false);
+    }
+  };
 
   const fetchDashboard = useCallback(async (silent = false) => {
     if (!silent) setIsLoading(true);
@@ -114,6 +181,7 @@ export default function DashboardScreen() {
   const bed = data?.tenant?.bed ?? authTenant?.bed ?? '—';
   const sharing = data?.tenant?.sharing ?? authTenant?.sharing ?? '—';
   const accessStatus = data?.tenant?.access_status ?? 'active';
+  const advanceVacateDate = data?.tenant?.advance_vacate_date ?? authTenant?.advance_vacate_date ?? null;
 
   if (isLoading && !data) {
     return (
@@ -293,6 +361,168 @@ export default function DashboardScreen() {
           </View>
         </View>
 
+        {/* Stay Management Card */}
+        <View style={[styles.card, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
+          <Text style={[styles.cardTitle, { color: c.text }]}>Stay Management</Text>
+          {advanceVacateDate ? (
+            <View style={[styles.vacateAlert, { backgroundColor: c.warningLight, borderColor: c.warning }]}>
+              <IconSymbol name="exclamationmark.triangle.fill" size={18} color={c.warning} />
+              <Text style={[styles.vacateAlertText, { color: c.text }]}>
+                Notice submitted. Scheduled to vacate on <Text style={{ fontWeight: '700' }}>{formatDate(advanceVacateDate)}</Text>.
+              </Text>
+            </View>
+          ) : (
+            <View style={{ gap: Spacing.md }}>
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: c.accent }]}
+                onPress={() => setIsVacateModalOpen(true)}
+              >
+                <IconSymbol name="calendar" size={18} color="#FFF" />
+                <Text style={styles.actionButtonText}>Schedule Move Out (Vacate)</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: c.backgroundTertiary, borderWidth: 1, borderColor: c.separator }]}
+                onPress={() => setIsReallocateModalOpen(true)}
+              >
+                <IconSymbol name="bed.double.fill" size={18} color={c.text} />
+                <Text style={[styles.actionButtonText, { color: c.text }]}>Request Bed Change</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
+        {/* Vacate Date Modal */}
+        <Modal
+          visible={isVacateModalOpen}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setIsVacateModalOpen(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={[styles.modalContent, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
+              <Text style={[styles.modalTitle, { color: c.text }]}>Vacate Notice</Text>
+              <Text style={{ color: c.textSecondary, fontSize: 13, marginBottom: Spacing.md }}>
+                Please provide your planned date of departure. Note that this cannot be undone without contacting administration.
+              </Text>
+
+              <Text style={[styles.modalLabel, { color: c.textSecondary }]}>Vacate Date (YYYY-MM-DD)</Text>
+              <TextInput
+                style={[styles.modalInput, { backgroundColor: c.backgroundTertiary, color: c.text, borderColor: c.separator }]}
+                placeholder="2026-07-31"
+                placeholderTextColor={c.textMuted}
+                value={vacateDateInput}
+                onChangeText={setVacateDateInput}
+              />
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalBtn, { backgroundColor: c.backgroundTertiary }]}
+                  onPress={() => { setIsVacateModalOpen(false); setVacateDateInput(''); }}
+                >
+                  <Text style={[styles.modalBtnText, { color: c.textSecondary }]}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalBtn, { backgroundColor: c.accent }]}
+                  onPress={handleVacateSubmit}
+                  disabled={isSubmittingVacate}
+                >
+                  {isSubmittingVacate ? (
+                    <ActivityIndicator color="#FFF" size="small" />
+                  ) : (
+                    <Text style={[styles.modalBtnText, { color: '#FFF' }]}>Submit Notice</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Bed Reallocation Modal */}
+        <Modal
+          visible={isReallocateModalOpen}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setIsReallocateModalOpen(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={[styles.modalContent, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
+              <Text style={[styles.modalTitle, { color: c.text }]}>Bed Reallocation Request</Text>
+              
+              {/* Sharing Selector */}
+              <Text style={[styles.modalLabel, { color: c.textSecondary }]}>Preferred Room Type</Text>
+              <View style={styles.sharingSelection}>
+                {['Single', '2 Sharing', '3 Sharing', '4 Sharing'].map((type) => (
+                  <TouchableOpacity
+                    key={type}
+                    style={[
+                      styles.sharingChip,
+                      {
+                        backgroundColor: sharingType === type ? c.accentLight : c.backgroundTertiary,
+                        borderColor: sharingType === type ? c.accent : 'transparent',
+                      },
+                    ]}
+                    onPress={() => setSharingType(type)}
+                  >
+                    <Text style={[styles.sharingChipText, { color: sharingType === type ? c.accent : c.textSecondary }]}>
+                      {type}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={[styles.modalLabel, { color: c.textSecondary }]}>Preferred Shift Date (YYYY-MM-DD)</Text>
+              <TextInput
+                style={[styles.modalInput, { backgroundColor: c.backgroundTertiary, color: c.text, borderColor: c.separator }]}
+                placeholder="2026-07-31"
+                placeholderTextColor={c.textMuted}
+                value={shiftDate}
+                onChangeText={setShiftDate}
+              />
+
+              <Text style={[styles.modalLabel, { color: c.textSecondary }]}>Reason for Reallocation</Text>
+              <TextInput
+                style={[
+                  styles.modalInput, 
+                  { 
+                    backgroundColor: c.backgroundTertiary, 
+                    color: c.text, 
+                    borderColor: c.separator,
+                    minHeight: 80,
+                    textAlignVertical: 'top'
+                  }
+                ]}
+                placeholder="Why do you want to change your bed? (e.g. want smaller sharing capacity, change floor, roommate issues)"
+                placeholderTextColor={c.textMuted}
+                multiline
+                numberOfLines={3}
+                value={changeReason}
+                onChangeText={setChangeReason}
+              />
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[styles.modalBtn, { backgroundColor: c.backgroundTertiary }]}
+                  onPress={() => { setIsReallocateModalOpen(false); setShiftDate(''); setChangeReason(''); }}
+                >
+                  <Text style={[styles.modalBtnText, { color: c.textSecondary }]}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.modalBtn, { backgroundColor: c.accent }]}
+                  onPress={handleReallocateSubmit}
+                  disabled={isSubmittingReallocate}
+                >
+                  {isSubmittingReallocate ? (
+                    <ActivityIndicator color="#FFF" size="small" />
+                  ) : (
+                    <Text style={[styles.modalBtnText, { color: '#FFF' }]}>Send Request</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
         {/* Notices Section */}
         {data?.notices && data.notices.length > 0 && (
           <View style={[styles.card, { backgroundColor: c.card, borderColor: c.cardBorder }]}>
@@ -422,4 +652,94 @@ const styles = StyleSheet.create({
     borderWidth: 1, alignItems: 'center',
   },
   signOutText: { fontSize: 15, fontWeight: '600' },
+  vacateAlert: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: Spacing.md,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    marginBottom: Spacing.sm,
+  },
+  vacateAlertText: {
+    fontSize: 14,
+    flex: 1,
+    lineHeight: 18,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: Radius.md,
+  },
+  actionButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFF',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    padding: Spacing.xl,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: Radius.lg,
+    padding: Spacing.xl,
+    borderWidth: 1,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: Spacing.lg,
+  },
+  modalLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: Spacing.md,
+    marginBottom: 6,
+  },
+  modalInput: {
+    borderRadius: Radius.sm,
+    padding: Spacing.lg,
+    fontSize: 15,
+    borderWidth: 1,
+  },
+  sharingSelection: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  sharingChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: Radius.sm,
+    borderWidth: 1.5,
+  },
+  sharingChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginTop: Spacing.xl,
+  },
+  modalBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: Radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
 });

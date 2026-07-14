@@ -18,7 +18,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { getTickets, createTicket, rateTicket } from '@/services/api';
 
 type TicketStatus = 'Pending' | 'In Progress' | 'Resolved';
-type TicketCategory = 'Electrical' | 'Plumbing' | 'Cleaning' | 'Other';
+type TicketCategory = 'Electrical' | 'Plumbing' | 'Cleaning' | 'Bed Reallocation' | 'Other';
 
 interface Ticket {
   id: number;
@@ -31,7 +31,7 @@ interface Ticket {
   created_at: string;
 }
 
-const CATEGORIES: TicketCategory[] = ['Electrical', 'Plumbing', 'Cleaning', 'Other'];
+const CATEGORIES: TicketCategory[] = ['Electrical', 'Plumbing', 'Cleaning', 'Bed Reallocation', 'Other'];
 
 export default function SupportScreen() {
   const colorScheme = useColorScheme() ?? 'dark';
@@ -99,6 +99,7 @@ export default function SupportScreen() {
       case 'Electrical': return 'bolt.fill';
       case 'Plumbing': return 'drop.fill';
       case 'Cleaning': return 'sparkles';
+      case 'Bed Reallocation': return 'bed.double.fill';
       default: return 'ellipsis.circle.fill';
     }
   };

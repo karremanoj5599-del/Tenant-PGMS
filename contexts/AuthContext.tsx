@@ -14,6 +14,7 @@ interface TenantInfo {
   bed?: string;
   sharing?: string;
   user_id?: number;
+  advance_vacate_date?: string | null;
 }
 
 interface AuthContextType {

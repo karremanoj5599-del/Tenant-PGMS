@@ -59,6 +59,13 @@ export async function updatePin(oldPin: string, newPin: string) {
   });
 }
 
+export async function submitVacateNotice(vacateDate: string) {
+  return request('/vacate', {
+    method: 'PUT',
+    body: JSON.stringify({ vacateDate }),
+  });
+}
+
 // ─── Dashboard ──────────────────────────────────────
 export async function getDashboard() {
   return request('/dashboard');
