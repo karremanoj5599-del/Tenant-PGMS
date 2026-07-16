@@ -85,10 +85,14 @@ export default function GuestsScreen() {
       
       <View style={styles.cardFooter}>
         <Text style={styles.dateText}><Ionicons name="calendar-outline" size={14} /> {new Date(item.visit_date).toLocaleDateString()}</Text>
-        <TouchableOpacity style={styles.qrButton} onPress={() => showQRCode(item)}>
-          <Ionicons name="qr-code-outline" size={16} color="#fff" />
-          <Text style={styles.qrButtonText}>Show QR</Text>
-        </TouchableOpacity>
+        {item.status === 'Pending Approval' ? (
+          <Text style={{ color: '#f59e0b', fontSize: 12, fontWeight: 'bold' }}>Waiting for Admin Approval</Text>
+        ) : (
+          <TouchableOpacity style={styles.qrButton} onPress={() => showQRCode(item)}>
+            <Ionicons name="qr-code-outline" size={16} color="#fff" />
+            <Text style={styles.qrButtonText}>Show QR</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
