@@ -66,7 +66,19 @@ export default function GuestsScreen() {
     setQrModalVisible(true);
   };
 
-  const renderVisitor = ({ item }: { item: any }) => (
+  const getStatusConfig = (status: string) => {
+    switch (status) {
+      case 'Entered': return { bg: '#10b98120', color: '#10b981' };
+      case 'Exited': return { bg: '#3b82f620', color: '#3b82f6' };
+      case 'Rejected': return { bg: '#ef444420', color: '#ef4444' };
+      case 'Pending Approval': return { bg: '#a855f720', color: '#a855f7' };
+      default: return { bg: '#f59e0b20', color: '#f59e0b' }; // Pending (Approved)
+    }
+  };
+
+  const renderVisitor = ({ item }: { item: any }) => {
+    const statusConfig = getStatusConfig(item.status);
+    return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={styles.iconContainer}>
@@ -76,26 +88,46 @@ export default function GuestsScreen() {
           <Text style={styles.visitorName}>{item.name}</Text>
           <Text style={styles.visitorPhone}>{item.phone}</Text>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: item.status === 'Checked In' ? '#10b98120' : '#f59e0b20' }]}>
-          <Text style={[styles.statusText, { color: item.status === 'Checked In' ? '#10b981' : '#f59e0b' }]}>
+        <View style={[styles.statusBadge, { backgroundColor: statusConfig.bg }]}>
+          <Text style={[styles.statusText, { color: statusConfig.color }]}>
             {item.status}
           </Text>
         </View>
       </View>
       
       <View style={styles.cardFooter}>
-        <Text style={styles.dateText}><Ionicons name="calendar-outline" size={14} /> {new Date(item.visit_date).toLocaleDateString()}</Text>
-        {item.status === 'Pending Approval' ? (
-          <Text style={{ color: '#f59e0b', fontSize: 12, fontWeight: 'bold' }}>Waiting for Admin Approval</Text>
-        ) : (
-          <TouchableOpacity style={styles.qrButton} onPress={() => showQRCode(item)}>
-            <Ionicons name="qr-code-outline" size={16} color="#fff" />
-            <Text style={styles.qrButtonText}>Show QR</Text>
-          </TouchableOpacity>
-        )}
+        <View>
+          <Text style={styles.dateText}><Ionicons name="calendar-outline" size={14} /> {new Date(item.visit_date).toLocaleDateString()}</Text>
+          {item.entry_time && (
+            <Text style={{ fontSize: 12, color: '#10b981', marginTop: 4 }}>
+              Entered: {new Date(item.entry_time).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})} ({item.entry_staff_name})
+            </Text>
+          )}
+          {item.exit_time && (
+            <Text style={{ fontSize: 12, color: '#3b82f6', marginTop: 2 }}>
+              Exited: {new Date(item.exit_time).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})} ({item.exit_staff_name})
+            </Text>
+          )}
+        </View>
+        
+        <View style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
+          {item.status === 'Pending Approval' ? (
+            <Text style={{ color: '#a855f7', fontSize: 12, fontWeight: 'bold' }}>Waiting for Admin</Text>
+          ) : item.status === 'Rejected' ? (
+            <Text style={{ color: '#ef4444', fontSize: 12, fontWeight: 'bold' }}>Rejected</Text>
+          ) : item.status === 'Exited' ? (
+            <Text style={{ color: '#64748b', fontSize: 12, fontWeight: 'bold' }}>Pass Used</Text>
+          ) : (
+            <TouchableOpacity style={styles.qrButton} onPress={() => showQRCode(item)}>
+              <Ionicons name="qr-code-outline" size={16} color="#fff" />
+              <Text style={styles.qrButtonText}>Show QR</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </View>
   );
+  };
 
   return (
     <View style={styles.container}>
