@@ -17,7 +17,15 @@ if (Platform.OS === 'android' && (host === 'localhost' || host === '127.0.0.1'))
 
 let API_BASE = process.env.EXPO_PUBLIC_API_URL;
 
-if (!API_BASE) {
+if (API_BASE) {
+  // If the env URL contains localhost or 127.0.0.1 and we're on Android,
+  // replace it with the correct host (works for both emulators and physical devices)
+  if (Platform.OS === 'android') {
+    API_BASE = API_BASE
+      .replace('://localhost', `://${host}`)
+      .replace('://127.0.0.1', `://${host}`);
+  }
+} else {
   if (Platform.OS === 'web' && typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
     // If running in a production web environment (e.g. Vercel), use the deployed backend URL
     API_BASE = 'https://pgms-nu.vercel.app/api/tenant';
