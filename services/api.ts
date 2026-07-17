@@ -54,7 +54,7 @@ export async function login(mobile: string, password: string) {
 
 export async function updatePin(oldPin: string, newPin: string) {
   return request('/auth/update-pin', {
-    method: 'PUT',
+    method: 'POST',
     body: JSON.stringify({ oldPin, newPin }),
   });
 }
@@ -68,7 +68,7 @@ export async function submitVacateNotice(vacateDate: string) {
 
 // ─── Dashboard ──────────────────────────────────────
 export async function getDashboard() {
-  return request('/dashboard');
+  return request('/dashboard/overview');
 }
 
 // ─── Payments ───────────────────────────────────────
@@ -99,7 +99,7 @@ export async function getTickets() {
 }
 
 export async function createTicket(category: string, description: string) {
-  return request('/tickets', {
+  return request('/tickets/create', {
     method: 'POST',
     body: JSON.stringify({ category, description }),
   });

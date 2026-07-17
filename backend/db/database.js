@@ -9,7 +9,7 @@ const path = require('path');
 require('dotenv').config();
 
 // Configuration Settings
-const dbType = process.env.DB_TYPE || 'supabase'; // Default to supabase for the migration
+const dbType = process.env.DB_TYPE || 'sqlite'; // Default to sqlite for local dev
 const DATABASE_URL = process.env.DATABASE_URL;
 
 let db;
@@ -31,7 +31,7 @@ if (dbType === 'supabase') {
   });
 } else {
   console.log('📁 Initializing Local SQLite Connection...');
-  const dbPath = DATABASE_URL || path.join(__dirname, '../../PGMS/backend/dev.sqlite3');
+  const dbPath = DATABASE_URL || path.join(__dirname, '../data/tenant_pgms.db');
   db = new Database(dbPath, { verbose: console.log });
 }
 

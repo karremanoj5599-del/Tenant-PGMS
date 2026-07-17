@@ -1,0 +1,4 @@
+- [x] Guard `expo-notifications` logic in `services/pushNotifications.ts`
+    - [x] Import `Constants` and `ExecutionEnvironment` from `expo-constants`
+    - [x] Add check to skip notification registration when in Expo Go
+- [x] Verify code logic
