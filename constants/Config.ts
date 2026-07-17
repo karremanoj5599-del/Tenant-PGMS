@@ -7,7 +7,7 @@ import Constants from 'expo-constants';
 
 import { Platform } from 'react-native';
 
-let host = Constants.expoConfig?.hostUri?.split(':')[0] || 'localhost';
+let host = Constants.expoConfig?.hostUri?.split(':')[0] || '192.168.1.106';
 
 // For Android emulator, 127.0.0.1 points to the emulator itself, not the PC.
 // 10.0.2.2 is the special alias to your host loopback interface (127.0.0.1 on your development machine)
@@ -31,10 +31,11 @@ if (API_BASE) {
     API_BASE = 'https://pgms-nu.vercel.app/api';
   } else {
     // Local development fallback
-    API_BASE = `http://${host === 'localhost' ? '127.0.0.1' : host}:3001/api`;
+    API_BASE = `http://${host}:3001/api`;
   }
 }
 
+console.log('📡 API Base URL:', API_BASE);
 
 export const Config = {
   API_BASE,

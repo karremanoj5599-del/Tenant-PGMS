@@ -1,7 +1,5 @@
-- [x] Update Frontend Configuration
-    - [x] Update `Config.ts` (port 3001 and API path)
-- [x] Align API Service Layer with Backend Endpoints
-    - [x] Update `services/api.ts`
-- [x] Update Backend Database Configuration
-    - [x] Update `backend/db/database.js` (default to sqlite and set local path)
-- [x] Verify Login
+- [x] Improve host detection in `constants/Config.ts`
+    - [x] Add explicit machine IP fallback
+    - [x] Add console log for `API_BASE`
+- [x] Add request logging in `services/api.ts`
+- [x] Verify changes

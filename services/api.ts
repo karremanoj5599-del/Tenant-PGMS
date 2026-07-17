@@ -29,7 +29,10 @@ async function request(endpoint: string, options: RequestInit = {}) {
     headers['x-tenant-id'] = currentTenantId;
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
+  const url = `${API_BASE}${endpoint}`;
+  console.log(`🌐 Fetching: ${url}`);
+
+  const response = await fetch(url, {
     ...options,
     headers,
   });

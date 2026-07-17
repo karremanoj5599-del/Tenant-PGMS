@@ -1,37 +1,28 @@
-# Walkthrough: Fixing Login and API Connectivity
+# Walkthrough: Fixing Networking and Adding Debug Logs
 
-I have corrected several configuration mismatches between the frontend and backend that were preventing the app from logging in and fetching data.
+I have updated the networking configuration to be more resilient and added logs to help track down connectivity issues between the mobile app and the backend.
 
 ## Changes Made
 
-### Frontend Configuration
+### Networking Configuration
 #### [Config.ts](file:///C:/Users/chand/StudioProjects/Tenant-PGMS/constants/Config.ts)
-- Updated the backend port from `5000` to `3001` to match the `server.js` configuration.
-- Removed the `/tenant` suffix from the `API_BASE` URL to align with the backend's routing structure.
+- Set the default host to your machine's IP (`192.168.1.106`) if Expo's automatic detection fails. This is critical for physical devices.
+- Added a `console.log` that prints the `API Base URL` every time the app starts.
+- Simplified the fallback URL logic to use the detected host directly.
 
-### API Service Layer
+### API Request Logging
 #### [api.ts](file:///C:/Users/chand/StudioProjects/Tenant-PGMS/services/api.ts)
-- Updated `getDashboard()` to use the `/dashboard/overview` endpoint.
-- Updated `createTicket()` to use the `/tickets/create` endpoint.
-- Changed `updatePin()` method from `PUT` to `POST` to match the backend route.
-
-### Backend Database Configuration
-#### [database.js](file:///C:/Users/chand/StudioProjects/Tenant-PGMS/backend/db/database.js)
-- Changed the default `dbType` from `supabase` to `sqlite`. This ensures the app works out-of-the-box using the local database.
-- Corrected the SQLite database path to point to `backend/data/tenant_pgms.db`.
+- Added a `console.log` inside the `request` function to show the exact URL being called for every API request.
+- This will show up in your Metro terminal as: `🌐 Fetching: http://192.168.1.106:3001/api/auth/login`.
 
 ## Verification
 
-### Ready for Login
-The app is now configured to talk to your local backend correctly.
+### How to Debug
+1. Look at your **Metro terminal** (where you run `npx expo start`).
+2. When the app starts, look for: `📡 API Base URL: http://192.168.1.106:3001/api`.
+3. When you tap "Sign In", look for: `🌐 Fetching: http://192.168.1.106:3001/api/auth/login`.
 
 > [!IMPORTANT]
-> To verify:
-> 1. Ensure your backend is running:
->    ```bash
->    cd backend
->    npm run dev
->    ```
-> 2. Open the mobile app and log in with:
->    - Mobile: `9876543210`
->    - PIN: `1234`
+> If you see `localhost` or `127.0.0.1` in the "Fetching" log while using a **physical phone**, it will fail. The logs I added will help you confirm if the IP is being detected correctly.
+>
+> If the IP is correct but it still fails, check if you can open `http://192.168.1.106:3001/api/health` in your computer's browser. If that works but the phone fails, it's likely a **Firewall** or **Wi-Fi isolation** issue.

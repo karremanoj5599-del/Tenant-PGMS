@@ -1,40 +1,34 @@
-# Plan: Fix App Login and API Connectivity
+# Plan: Debug and Fix Networking Failure
 
-The app is failing to log in because of a configuration mismatch between the frontend and the backend. Specifically, the frontend is trying to connect to the wrong port and using incorrect API path segments.
+The "networking failure" is likely caused by the mobile app being unable to reach the backend server IP. This happens if the IP address detection is incorrect for the current environment (Physical Device vs Emulator) or if the backend server is not running on the expected port.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> I have identified that the backend server runs on port **3001** by default, but the frontend was configured to use port **5000**. I will also correct the API path from `/api/tenant/` to `/api/` to match the backend routes.
+> Please ensure that your backend server is running. You can start it by opening a terminal in the `backend` folder and running:
+> ```bash
+> npm run dev
+> ```
+> Also, if you are using a **physical phone**, ensure it is on the same Wi-Fi network as your computer.
 
 ## Proposed Changes
 
 ### [Component] Frontend Configuration
 
 #### [MODIFY] [Config.ts](file:///C:/Users/chand/StudioProjects/Tenant-PGMS/constants/Config.ts)
-- Change the fallback port from `5000` to `3001`.
-- Update the default `API_BASE` path to remove the `/tenant` suffix, as the backend routes are prefixed with `/api/auth`, `/api/dashboard`, etc.
+- Improve the host detection logic to handle more Expo edge cases.
+- Add a console log to help the user see exactly what URL the app is trying to connect to.
+- Ensure the IP `192.168.1.106` (your current machine IP) is used as a fallback if other detection methods fail on a physical device.
 
 ### [Component] API Service Layer
 
 #### [MODIFY] [api.ts](file:///C:/Users/chand/StudioProjects/Tenant-PGMS/services/api.ts)
-- Update service functions to match the actual backend endpoints:
-    - Change `getDashboard()` to use `/dashboard/overview`.
-    - Change `createTicket()` to use `/tickets/create`.
-    - Change `updatePin()` to use `/auth/update-pin`.
-    - Change `scanMessQR()` to use `/mess/scan`.
-
-### [Component] Backend Configuration
-
-#### [MODIFY] [database.js](file:///C:/Users/chand/StudioProjects/Tenant-PGMS/backend/db/database.js)
-- Change the default `dbType` to `sqlite` to allow local development without immediate Cloud setup.
-- Correct the SQLite database path to point to `backend/data/tenant_pgms.db`.
+- Add basic logging to the `request` function to log the full URL being fetched. This will help identify if the URL is incorrect during debugging.
 
 ## Verification Plan
 
 ### Manual Verification
-1. Start the backend server (`cd backend && npm run dev`).
-2. Attempt to log in with the demo credentials:
-   - Mobile: `9876543210`
-   - PIN: `1234`
-3. Verify that the dashboard loads after login.
+1. Open the mobile app.
+2. Check the console/terminal logs for the message "📡 API Base URL: ...".
+3. Verify if that URL matches your computer's IP and port 3001.
+4. Try to log in again.
