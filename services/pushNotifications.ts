@@ -61,7 +61,7 @@ export function usePushNotifications(isLoggedIn: boolean) {
           // Send to backend
           try {
             const api = (await import('./api')).default;
-            await api.post('/api/auth/register-push-token', { pushToken: token });
+            await api.post('/auth/register-push-token', { pushToken: token });
           } catch (err: any) {
             console.log('Failed to register push token:', err);
           }

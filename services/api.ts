@@ -7,7 +7,10 @@ import Constants from 'expo-constants';
 
 import { Config } from '@/constants/Config';
 
-const API_BASE = Config.API_BASE;
+let API_BASE = Config.API_BASE;
+if (API_BASE && !API_BASE.endsWith('/tenant')) {
+  API_BASE = API_BASE.replace(/\/$/, '') + '/tenant';
+}
 
 let currentTenantId: string | null = null;
 
