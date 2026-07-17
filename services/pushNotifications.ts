@@ -1,51 +1,92 @@
 import { useState, useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
-import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
-import api from './api';
+import Constants from 'expo-constants';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+/**
+ * Push Notifications Service
+ * 
+ * IMPORTANT: expo-notifications is imported DYNAMICALLY (not at top level)
+ * because starting from SDK 53, the module throws an error when loaded
+ * inside Expo Go. By importing lazily inside useEffect, we avoid the
+ * module-level side-effect (DevicePushTokenAutoRegistration) that crashes.
+ * 
+ * Push notifications will only work in a Development Build or production build.
+ */
+
+// We store a reference so we can set the notification handler once
+let notificationHandlerSet = false;
 
 export function usePushNotifications(isLoggedIn: boolean) {
   const [expoPushToken, setExpoPushToken] = useState('');
-  const notificationListener = useRef<Notifications.Subscription | null>(null);
-  const responseListener = useRef<Notifications.Subscription | null>(null);
+  const notificationListenerRef = useRef<any>(null);
+  const responseListenerRef = useRef<any>(null);
 
   useEffect(() => {
     if (!isLoggedIn) return;
 
-    registerForPushNotificationsAsync().then(token => {
-      if (token) {
-        setExpoPushToken(token);
-        // Send to backend
-        api.post('/api/auth/register-push-token', { pushToken: token })
-          .catch((err: any) => console.log('Failed to register push token:', err));
+    // Skip push notifications entirely in Expo Go
+    if (Constants.appOwnership === 'expo') {
+      console.log('⚠️ Push notifications are not supported in Expo Go (SDK 53+). Use a development build.');
+      return;
+    }
+
+    let isMounted = true;
+
+    (async () => {
+      try {
+        // Dynamic import to avoid module-level crash in Expo Go
+        const Notifications = await import('expo-notifications');
+        const Device = await import('expo-device');
+
+        if (!isMounted) return;
+
+        // Set notification handler once
+        if (!notificationHandlerSet) {
+          Notifications.setNotificationHandler({
+            handleNotification: async () => ({
+              shouldShowAlert: true,
+              shouldPlaySound: true,
+              shouldSetBadge: false,
+              shouldShowBanner: true,
+              shouldShowList: true,
+            }),
+          });
+          notificationHandlerSet = true;
+        }
+
+        // Register for push notifications
+        const token = await registerForPushNotificationsAsync(Notifications, Device);
+        if (token && isMounted) {
+          setExpoPushToken(token);
+          // Send to backend
+          try {
+            const api = (await import('./api')).default;
+            await api.post('/api/auth/register-push-token', { pushToken: token });
+          } catch (err: any) {
+            console.log('Failed to register push token:', err);
+          }
+        }
+
+        // Set up notification listeners
+        notificationListenerRef.current = Notifications.addNotificationReceivedListener(notification => {
+          console.log('Notification received:', notification);
+        });
+
+        responseListenerRef.current = Notifications.addNotificationResponseReceivedListener(response => {
+          console.log('Notification clicked:', response);
+        });
+      } catch (e) {
+        console.log('Push notifications setup failed (expected in Expo Go):', e);
       }
-    });
-
-    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-      // Handle foreground notification
-      console.log('Notification received:', notification);
-    });
-
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log('Notification clicked:', response);
-    });
+    })();
 
     return () => {
-      if (notificationListener.current) {
-        notificationListener.current.remove();
+      isMounted = false;
+      if (notificationListenerRef.current) {
+        notificationListenerRef.current.remove();
       }
-      if (responseListener.current) {
-        responseListener.current.remove();
+      if (responseListenerRef.current) {
+        responseListenerRef.current.remove();
       }
     };
   }, [isLoggedIn]);
@@ -53,7 +94,7 @@ export function usePushNotifications(isLoggedIn: boolean) {
   return { expoPushToken };
 }
 
-async function registerForPushNotificationsAsync() {
+async function registerForPushNotificationsAsync(Notifications: any, Device: any) {
   let token;
 
   if (Platform.OS === 'android') {
@@ -82,8 +123,6 @@ async function registerForPushNotificationsAsync() {
       return;
     }
     try {
-      // NOTE: For Expo Go, projectId is not strictly needed, but for EAS Build it is.
-      // If project ID is missing, Expo uses the manifest.
       token = (await Notifications.getExpoPushTokenAsync()).data;
       console.log('Expo Push Token:', token);
     } catch (e) {
