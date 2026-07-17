@@ -2,17 +2,21 @@ import { useState, useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import api from './api';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+// Only set handler if not in Expo Go to avoid potential warnings/errors
+if (Constants.executionEnvironment !== ExecutionEnvironment.StoreClient) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 export function usePushNotifications(isLoggedIn: boolean) {
   const [expoPushToken, setExpoPushToken] = useState('');
@@ -54,6 +58,12 @@ export function usePushNotifications(isLoggedIn: boolean) {
 }
 
 async function registerForPushNotificationsAsync() {
+  // EXPO GO CHECK: SDK 53+ does not support push notifications in Expo Go (StoreClient)
+  if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) {
+    console.warn('Push notifications are not supported in Expo Go (SDK 53+). Please use a development build.');
+    return null;
+  }
+
   let token;
 
   if (Platform.OS === 'android') {
