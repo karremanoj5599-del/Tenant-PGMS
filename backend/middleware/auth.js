@@ -20,9 +20,9 @@ const authMiddleware = async (req, res, next) => {
     // Identify tenant from Header (using our unified Knex connection)
     let tenant;
     if (dbType === 'supabase') {
-      tenant = await db('tenants').where('tenant_id', tenantId).first();
+      tenant = await db('tenants').where('id', tenantId).first();
     } else {
-      tenant = db.prepare('SELECT * FROM tenants WHERE tenant_id = ?').get(tenantId);
+      tenant = db.prepare('SELECT * FROM tenants WHERE id = ?').get(tenantId);
     }
 
     if (!tenant) {
