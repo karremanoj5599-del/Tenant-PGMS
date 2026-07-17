@@ -1,28 +1,37 @@
-# Walkthrough: Clearing Expo Notifications Error
+# Walkthrough: Fixing Login and API Connectivity
 
-I have updated the push notification service to prevent the fatal error in **Expo Go** while maintaining support for push notifications in **Development Builds**.
+I have corrected several configuration mismatches between the frontend and backend that were preventing the app from logging in and fetching data.
 
 ## Changes Made
 
-### Push Notification Service
-#### [pushNotifications.ts](file:///C:/Users/chand/StudioProjects/Tenant-PGMS/services/pushNotifications.ts)
-- Imported `Constants` and `ExecutionEnvironment` from `expo-constants`.
-- Added a conditional check at the top level to only call `Notifications.setNotificationHandler` when not in Expo Go.
-- Modified `registerForPushNotificationsAsync` to return early with a warning if the app is running in Expo Go (`ExecutionEnvironment.StoreClient`).
+### Frontend Configuration
+#### [Config.ts](file:///C:/Users/chand/StudioProjects/Tenant-PGMS/constants/Config.ts)
+- Updated the backend port from `5000` to `3001` to match the `server.js` configuration.
+- Removed the `/tenant` suffix from the `API_BASE` URL to align with the backend's routing structure.
 
-```typescript
-// Example of the check added:
-if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) {
-  console.warn('Push notifications are not supported in Expo Go (SDK 53+). Please use a development build.');
-  return null;
-}
-```
+### API Service Layer
+#### [api.ts](file:///C:/Users/chand/StudioProjects/Tenant-PGMS/services/api.ts)
+- Updated `getDashboard()` to use the `/dashboard/overview` endpoint.
+- Updated `createTicket()` to use the `/tickets/create` endpoint.
+- Changed `updatePin()` method from `PUT` to `POST` to match the backend route.
 
-## Verification Results
+### Backend Database Configuration
+#### [database.js](file:///C:/Users/chand/StudioProjects/Tenant-PGMS/backend/db/database.js)
+- Changed the default `dbType` from `supabase` to `sqlite`. This ensures the app works out-of-the-box using the local database.
+- Corrected the SQLite database path to point to `backend/data/tenant_pgms.db`.
 
-### Code Review
-- The code now safely handles the environment check before interacting with the `expo-notifications` library, which is the root cause of the error message you received.
-- This change allows the app to boot and function normally in Expo Go for all other features (UI, Auth, etc.).
+## Verification
 
-> [!NOTE]
-> You will still see a warning in the console when the app starts, but it will no longer be a fatal error that prevents development. To actually use push notifications, you'll eventually need to transition to a [Development Build](https://docs.expo.dev/develop/development-builds/introduction/).
+### Ready for Login
+The app is now configured to talk to your local backend correctly.
+
+> [!IMPORTANT]
+> To verify:
+> 1. Ensure your backend is running:
+>    ```bash
+>    cd backend
+>    npm run dev
+>    ```
+> 2. Open the mobile app and log in with:
+>    - Mobile: `9876543210`
+>    - PIN: `1234`

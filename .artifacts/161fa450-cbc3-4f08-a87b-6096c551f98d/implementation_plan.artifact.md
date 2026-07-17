@@ -1,27 +1,40 @@
-# Plan: Clear Expo Notifications Error in Expo Go
+# Plan: Fix App Login and API Connectivity
 
-The error `expo-notifications: Android Push notifications ... removed from Expo Go` occurs because Expo SDK 53+ no longer supports remote push notifications within the standard Expo Go app. To fix this, you either need to use a **Development Build** or disable the notification logic when running in Expo Go.
-
-## Proposed Changes
-
-### [Component] Push Notification Service
-
-#### [MODIFY] [pushNotifications.ts](file:///C:/Users/chand/StudioProjects/Tenant-PGMS/services/pushNotifications.ts)
-- Add a check for the execution environment using `expo-constants`.
-- Guard all `expo-notifications` calls and initialization logic so they only run when **not** in Expo Go (i.e., in a standalone app or development build).
-- Provide a safe fallback for the `usePushNotifications` hook so the rest of the app continues to function in Expo Go without crashing.
+The app is failing to log in because of a configuration mismatch between the frontend and the backend. Specifically, the frontend is trying to connect to the wrong port and using incorrect API path segments.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> This change will suppress the error and allow you to continue developing in **Expo Go**, but **push notifications will not work** while using Expo Go.
-> To test push notifications, you will eventually need to:
-> 1. Install `expo-dev-client`.
-> 2. Create a development build (using `npx expo run:android` or EAS Build).
+> I have identified that the backend server runs on port **3001** by default, but the frontend was configured to use port **5000**. I will also correct the API path from `/api/tenant/` to `/api/` to match the backend routes.
+
+## Proposed Changes
+
+### [Component] Frontend Configuration
+
+#### [MODIFY] [Config.ts](file:///C:/Users/chand/StudioProjects/Tenant-PGMS/constants/Config.ts)
+- Change the fallback port from `5000` to `3001`.
+- Update the default `API_BASE` path to remove the `/tenant` suffix, as the backend routes are prefixed with `/api/auth`, `/api/dashboard`, etc.
+
+### [Component] API Service Layer
+
+#### [MODIFY] [api.ts](file:///C:/Users/chand/StudioProjects/Tenant-PGMS/services/api.ts)
+- Update service functions to match the actual backend endpoints:
+    - Change `getDashboard()` to use `/dashboard/overview`.
+    - Change `createTicket()` to use `/tickets/create`.
+    - Change `updatePin()` to use `/auth/update-pin`.
+    - Change `scanMessQR()` to use `/mess/scan`.
+
+### [Component] Backend Configuration
+
+#### [MODIFY] [database.js](file:///C:/Users/chand/StudioProjects/Tenant-PGMS/backend/db/database.js)
+- Change the default `dbType` to `sqlite` to allow local development without immediate Cloud setup.
+- Correct the SQLite database path to point to `backend/data/tenant_pgms.db`.
 
 ## Verification Plan
 
 ### Manual Verification
-1. Run the app in Expo Go.
-2. Verify that the console no longer shows the fatal `expo-notifications` error.
-3. Verify that the app loads successfully to the login/main screen.
+1. Start the backend server (`cd backend && npm run dev`).
+2. Attempt to log in with the demo credentials:
+   - Mobile: `9876543210`
+   - PIN: `1234`
+3. Verify that the dashboard loads after login.

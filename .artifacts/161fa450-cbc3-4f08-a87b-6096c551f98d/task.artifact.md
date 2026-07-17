@@ -1,4 +1,7 @@
-- [x] Guard `expo-notifications` logic in `services/pushNotifications.ts`
-    - [x] Import `Constants` and `ExecutionEnvironment` from `expo-constants`
-    - [x] Add check to skip notification registration when in Expo Go
-- [x] Verify code logic
+- [x] Update Frontend Configuration
+    - [x] Update `Config.ts` (port 3001 and API path)
+- [x] Align API Service Layer with Backend Endpoints
+    - [x] Update `services/api.ts`
+- [x] Update Backend Database Configuration
+    - [x] Update `backend/db/database.js` (default to sqlite and set local path)
+- [x] Verify Login
