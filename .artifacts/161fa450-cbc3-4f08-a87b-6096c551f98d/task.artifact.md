@@ -1,5 +1,0 @@
-- [x] Improve host detection in `constants/Config.ts`
-    - [x] Add explicit machine IP fallback
-    - [x] Add console log for `API_BASE`
-- [x] Add request logging in `services/api.ts`
-- [x] Verify changes
