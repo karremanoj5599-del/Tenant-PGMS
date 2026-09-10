@@ -70,26 +70,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> demoLogin() async {
-    final err = await login('9876543210', '1234');
-    if (err != null) {
-      final demoTenant = TenantInfo(
-        id: 2226,
-        name: 'Demo Tenant',
-        mobile: '+919876543210',
-        room: '104',
-        bed: 'A',
-        sharing: '2-Sharing',
-        userId: 1,
-        rent: 8500.0,
-        dueDate: '2026-08-05',
-        deposit: 17000.0,
-        status: 'Active',
-      );
-      await signIn('2226', demoTenant);
-    }
-  }
-
   Future<void> signIn(String newToken, TenantInfo tenantInfo) async {
     _token = newToken;
     _tenant = tenantInfo;

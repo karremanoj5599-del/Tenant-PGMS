@@ -59,13 +59,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: Row(
-          children: [
-            Text(
-              'Home',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20 * theme.uiScale),
-            ),
-          ],
+        title: Text(
+          tenant?.pgName ?? 'Tenant PGMS',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18 * theme.uiScale),
         ),
         actions: [
           IconButton(
@@ -90,6 +86,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (tenant?.pgName != null && tenant!.pgName!.isNotEmpty) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: colors.accent.withAlpha(30),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: colors.accent.withAlpha(70)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.apartment, size: 14, color: colors.accent),
+                                const SizedBox(width: 6),
+                                Text(
+                                  tenant.pgName!,
+                                  style: TextStyle(
+                                    fontSize: 12 * theme.uiScale,
+                                    fontWeight: FontWeight.bold,
+                                    color: colors.accent,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                        ],
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [

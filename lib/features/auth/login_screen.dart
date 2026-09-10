@@ -98,12 +98,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _fillDemoCredentials() {
-    _mobileController.text = '9876543210';
-    _passwordController.text = '1234';
-    _handleLogin(overrideMobile: '9876543210', overridePassword: '1234');
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context);
@@ -250,47 +244,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: () => _handleLogin(),
                         ),
                       ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Demo Credentials Card
-                  InkWell(
-                    onTap: _fillDemoCredentials,
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: colors.accent.withAlpha(20),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: colors.accent.withAlpha(60)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Text('🔑 ', style: TextStyle(fontSize: 16)),
-                              Text(
-                                'Demo Credentials (Tap to Auto-fill)',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: colors.accent,
-                                  fontSize: 13 * theme.uiScale,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Mobile: 9876543210  |  PIN: 1234',
-                            style: TextStyle(
-                              color: colors.textSecondary,
-                              fontSize: 13 * theme.uiScale,
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                   const SizedBox(height: 32),

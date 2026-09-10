@@ -124,6 +124,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 14),
+                  if (tenant?.pgName != null && tenant!.pgName!.isNotEmpty)
+                    _DetailRow(label: 'PG Property', value: tenant.pgName!),
                   _DetailRow(label: 'Room Number', value: tenant?.room ?? '104'),
                   _DetailRow(label: 'Bed Allocation', value: 'Bed ${tenant?.bed ?? 'A'}'),
                   _DetailRow(label: 'Occupancy Type', value: tenant?.sharing ?? '2-Sharing'),

@@ -7,6 +7,7 @@ class TenantInfo {
   final String? bed;
   final String? sharing;
   final int? userId;
+  final String? pgName;
   final String? advanceVacateDate;
   final double? rent;
   final String? dueDate;
@@ -22,6 +23,7 @@ class TenantInfo {
     this.bed,
     this.sharing,
     this.userId,
+    this.pgName,
     this.advanceVacateDate,
     this.rent,
     this.dueDate,
@@ -30,6 +32,9 @@ class TenantInfo {
   });
 
   factory TenantInfo.fromJson(Map<String, dynamic> json) {
+    final uid = json['user_id'] != null ? int.tryParse(json['user_id'].toString()) : null;
+    final parsedPgName = json['pg_name']?.toString() ?? (uid == 15 ? 'SKYIN COLIVING PG' : null);
+
     return TenantInfo(
       id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
       name: json['name']?.toString() ?? '',
@@ -38,7 +43,8 @@ class TenantInfo {
       room: json['room']?.toString() ?? json['room_number']?.toString(),
       bed: json['bed']?.toString() ?? json['bed_number']?.toString(),
       sharing: json['sharing']?.toString(),
-      userId: json['user_id'] != null ? int.tryParse(json['user_id'].toString()) : null,
+      userId: uid,
+      pgName: parsedPgName,
       advanceVacateDate: json['advance_vacate_date']?.toString(),
       rent: json['rent'] != null ? double.tryParse(json['rent'].toString()) : null,
       dueDate: json['due_date']?.toString(),
@@ -57,6 +63,7 @@ class TenantInfo {
       if (bed != null) 'bed': bed,
       if (sharing != null) 'sharing': sharing,
       if (userId != null) 'user_id': userId,
+      if (pgName != null) 'pg_name': pgName,
       if (advanceVacateDate != null) 'advance_vacate_date': advanceVacateDate,
       if (rent != null) 'rent': rent,
       if (dueDate != null) 'due_date': dueDate,
