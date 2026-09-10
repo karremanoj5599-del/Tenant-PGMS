@@ -37,8 +37,10 @@ class ApiService {
   Map<String, String> _headers() {
     final headers = <String, String>{
       'Content-Type': 'application/json',
-      'x-user-id': _userId ?? '1',
     };
+    if (_userId != null && _userId!.isNotEmpty) {
+      headers['x-user-id'] = _userId!;
+    }
     if (_tenantIdToken != null && _tenantIdToken!.isNotEmpty) {
       headers['x-tenant-id'] = _tenantIdToken!;
     }
@@ -53,7 +55,6 @@ class ApiService {
         Uri.parse('$_baseUrl/auth/login'),
         headers: {
           'Content-Type': 'application/json',
-          'x-user-id': _userId ?? '1',
         },
         body: jsonEncode({'mobile': formattedMobile, 'password': password}),
       );
@@ -63,7 +64,7 @@ class ApiService {
       if (response.statusCode >= 200 && response.statusCode < 300 && (body['success'] == true || body['token'] != null)) {
         final token = body['token']?.toString() ?? '';
         final tenantJson = body['tenant'] is Map ? (body['tenant'] as Map<String, dynamic>) : <String, dynamic>{};
-        final userId = tenantJson['user_id']?.toString() ?? '1';
+        final userId = tenantJson['user_id']?.toString();
         setAuthToken(token, userId: userId);
         final tenant = TenantInfo.fromJson(tenantJson);
         return ApiResponse(

@@ -8,7 +8,8 @@ class ApiConfig {
     const envUrl = String.fromEnvironment('API_URL', defaultValue: '');
 
     if (envUrl.isNotEmpty) {
-      return envUrl.replaceAll(RegExp(r'/tenant/?$'), '');
+      final clean = envUrl.replaceAll(RegExp(r'/+$'), '');
+      return clean.endsWith('/tenant') ? clean : '$clean/tenant';
     }
 
     // Production URL
