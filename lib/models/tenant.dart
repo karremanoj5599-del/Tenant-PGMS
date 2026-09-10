@@ -33,7 +33,7 @@ class TenantInfo {
 
   factory TenantInfo.fromJson(Map<String, dynamic> json) {
     final uid = json['user_id'] != null ? int.tryParse(json['user_id'].toString()) : null;
-    final parsedPgName = json['pg_name']?.toString() ?? (uid == 15 ? 'SKYIN COLIVING PG' : null);
+    final parsedPgName = json['pg_name']?.toString();
 
     return TenantInfo(
       id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
