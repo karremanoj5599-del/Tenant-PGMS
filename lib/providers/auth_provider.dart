@@ -37,7 +37,7 @@ class AuthProvider extends ChangeNotifier {
         } else {
           _token = storedToken;
           _tenant = TenantInfo.fromJson(jsonDecode(storedTenant));
-          apiService.setAuthToken(storedToken);
+          apiService.setAuthToken(storedToken, userId: _tenant?.userId?.toString());
         }
       }
     } catch (e) {
@@ -74,25 +74,26 @@ class AuthProvider extends ChangeNotifier {
     final err = await login('9876543210', '1234');
     if (err != null) {
       final demoTenant = TenantInfo(
-        id: 1,
-        name: 'Rahul Sharma (Demo)',
+        id: 2226,
+        name: 'Demo Tenant',
         mobile: '+919876543210',
         room: '104',
         bed: 'A',
         sharing: '2-Sharing',
+        userId: 1,
         rent: 8500.0,
         dueDate: '2026-08-05',
         deposit: 17000.0,
         status: 'Active',
       );
-      await signIn('demo_tenant_1', demoTenant);
+      await signIn('2226', demoTenant);
     }
   }
 
   Future<void> signIn(String newToken, TenantInfo tenantInfo) async {
     _token = newToken;
     _tenant = tenantInfo;
-    apiService.setAuthToken(newToken);
+    apiService.setAuthToken(newToken, userId: tenantInfo.userId?.toString());
 
     try {
       await _storage.write(key: 'auth_token', value: newToken);

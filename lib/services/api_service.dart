@@ -23,16 +23,21 @@ class ApiResponse<T> {
 class ApiService {
   final String _baseUrl;
   String? _tenantIdToken;
+  String? _userId;
 
   ApiService({String? baseUrl}) : _baseUrl = baseUrl ?? ApiConfig.baseUrl;
 
-  void setAuthToken(String? token) {
+  void setAuthToken(String? token, {String? userId}) {
     _tenantIdToken = token;
+    if (userId != null && userId.isNotEmpty) {
+      _userId = userId;
+    }
   }
 
   Map<String, String> _headers() {
     final headers = <String, String>{
       'Content-Type': 'application/json',
+      'x-user-id': _userId ?? '1',
     };
     if (_tenantIdToken != null && _tenantIdToken!.isNotEmpty) {
       headers['x-tenant-id'] = _tenantIdToken!;
@@ -46,16 +51,21 @@ class ApiService {
       final formattedMobile = mobile.trim().startsWith('+') ? mobile.trim() : '+91${mobile.trim()}';
       final response = await http.post(
         Uri.parse('$_baseUrl/auth/login'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': _userId ?? '1',
+        },
         body: jsonEncode({'mobile': formattedMobile, 'password': password}),
       );
 
       final body = jsonDecode(response.body);
 
-      if (response.statusCode >= 200 && response.statusCode < 300 && body['success'] == true) {
+      if (response.statusCode >= 200 && response.statusCode < 300 && (body['success'] == true || body['token'] != null)) {
         final token = body['token']?.toString() ?? '';
-        setAuthToken(token);
-        final tenant = TenantInfo.fromJson(body['tenant'] ?? {});
+        final tenantJson = body['tenant'] is Map ? (body['tenant'] as Map<String, dynamic>) : <String, dynamic>{};
+        final userId = tenantJson['user_id']?.toString() ?? '1';
+        setAuthToken(token, userId: userId);
+        final tenant = TenantInfo.fromJson(tenantJson);
         return ApiResponse(
           success: true,
           data: {'token': token, 'tenant': tenant},
