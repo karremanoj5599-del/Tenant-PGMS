@@ -32,8 +32,8 @@ class TenantShellScreen extends StatelessWidget {
         selectedItemColor: colors.accent,
         unselectedItemColor: colors.textMuted,
         type: BottomNavigationBarType.fixed,
-        selectedFontSize: 10 * theme.uiScale,
-        unselectedFontSize: 10 * theme.uiScale,
+        selectedFontSize: 11 * theme.uiScale,
+        unselectedFontSize: 11 * theme.uiScale,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
@@ -46,34 +46,19 @@ class TenantShellScreen extends StatelessWidget {
             label: 'Pay',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.people_outline),
-            activeIcon: Icon(Icons.people),
-            label: 'Guests',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.restaurant_outlined),
             activeIcon: Icon(Icons.restaurant),
             label: 'Food',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.build_outlined),
-            activeIcon: Icon(Icons.build),
+            icon: Icon(Icons.support_agent_outlined),
+            activeIcon: Icon(Icons.support_agent),
             label: 'Support',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.access_time_outlined),
-            activeIcon: Icon(Icons.access_time_filled),
-            label: 'Logs',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_outlined),
-            activeIcon: Icon(Icons.notifications),
-            label: 'Alerts',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Profile',
+            icon: Icon(Icons.grid_view_outlined),
+            activeIcon: Icon(Icons.grid_view_rounded),
+            label: 'More',
           ),
         ],
       ),

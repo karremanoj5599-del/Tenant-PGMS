@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../models/tenant.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/api_service.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
 import '../../widgets/app_text_field.dart';
-import '../../widgets/theme_settings_modal.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,6 +17,20 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _refreshProfile();
+  }
+
+  Future<void> _refreshProfile() async {
+    final data = await ApiService().getDashboard();
+    if (mounted && data != null && data['tenant'] is Map) {
+      final updatedTenant = TenantInfo.fromJson(data['tenant'] as Map<String, dynamic>);
+      Provider.of<AuthProvider>(context, listen: false).updateTenant(updatedTenant);
+    }
+  }
+
   void _showVacateNoticeModal() {
     showModalBottomSheet(
       context: context,
@@ -125,12 +139,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 14),
                   if (tenant?.pgName != null && tenant!.pgName!.isNotEmpty)
-                    _DetailRow(label: 'PG Property', value: tenant.pgName!),
-                  _DetailRow(label: 'Room Number', value: tenant?.room ?? '104'),
-                  _DetailRow(label: 'Bed Allocation', value: 'Bed ${tenant?.bed ?? 'A'}'),
-                  _DetailRow(label: 'Occupancy Type', value: tenant?.sharing ?? '2-Sharing'),
+                    _DetailRow(label: 'PG Property', value: tenant.pgName ?? ''),
+                  _DetailRow(
+                    label: 'Room Number',
+                    value: (tenant?.room != null && tenant!.room!.isNotEmpty && tenant.room != '—')
+                        ? tenant.room!
+                        : 'Not Assigned',
+                  ),
+                  _DetailRow(
+                    label: 'Bed Allocation',
+                    value: (tenant?.bed != null && tenant!.bed!.isNotEmpty && tenant.bed != '—')
+                        ? 'Bed ${tenant.bed}'
+                        : 'Not Assigned',
+                  ),
+                  _DetailRow(
+                    label: 'Occupancy Type',
+                    value: (tenant?.sharing != null && tenant!.sharing!.isNotEmpty && tenant.sharing != '—')
+                        ? tenant.sharing!
+                        : 'Not Assigned',
+                  ),
                   if (tenant?.advanceVacateDate != null)
-                    _DetailRow(label: 'Notice Vacate Date', value: tenant!.advanceVacateDate!),
+                    _DetailRow(label: 'Notice Vacate Date', value: tenant!.advanceVacateDate ?? ''),
                 ],
               ),
             ),
@@ -167,13 +196,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Theme & Display
+            // Security Preferences
             AppCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'App Preferences',
+                    'Security Preferences',
                     style: TextStyle(
                       fontSize: 16 * theme.uiScale,
                       fontWeight: FontWeight.bold,
@@ -181,14 +210,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 14),
-                  AppButton(
-                    text: 'Theme & Typography Settings',
-                    variant: AppButtonVariant.outline,
-                    width: double.infinity,
-                    icon: Icons.palette_outlined,
-                    onPressed: () => ThemeSettingsModal.show(context),
-                  ),
-                  const SizedBox(height: 12),
                   AppButton(
                     text: 'Update Security PIN',
                     variant: AppButtonVariant.outline,

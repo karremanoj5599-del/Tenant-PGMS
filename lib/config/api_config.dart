@@ -1,5 +1,4 @@
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kDebugMode;
 
 class ApiConfig {
   ApiConfig._();
@@ -12,15 +11,16 @@ class ApiConfig {
       return clean.endsWith('/tenant') ? clean : '$clean/tenant';
     }
 
+    // In debug mode, connect to your PC's local Wi-Fi IP on port 5000
+    // This works both wirelessly over Wi-Fi and via USB!
+    if (kDebugMode) {
+      return 'http://192.168.1.106:5000/api/tenant';
+    }
+
     // Production URL
     return 'https://pgms-nu.vercel.app/api/tenant';
   }
 
   /// Local development fallback
-  static String get localBaseUrl {
-    if (!kIsWeb && Platform.isAndroid) {
-      return 'http://10.0.2.2:3001/api/tenant';
-    }
-    return 'http://127.0.0.1:3001/api/tenant';
-  }
+  static String get localBaseUrl => 'http://192.168.1.106:5000/api/tenant';
 }

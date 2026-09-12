@@ -3,11 +3,12 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/login_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/payments/pay_screen.dart';
-import '../features/guests/guests_screen.dart';
-import '../features/guests/visitor_invite_screen.dart';
 import '../features/mess/mess_screen.dart';
 import '../features/mess/mess_scan_screen.dart';
 import '../features/support/support_screen.dart';
+import '../features/more/more_screen.dart';
+import '../features/guests/guests_screen.dart';
+import '../features/guests/visitor_invite_screen.dart';
 import '../features/logs/logs_screen.dart';
 import '../features/notifications/notifications_screen.dart';
 import '../features/profile/profile_screen.dart';
@@ -18,12 +19,9 @@ GoRouter createRouter(AuthProvider authProvider) {
   final rootNavigatorKey = GlobalKey<NavigatorState>();
   final shellNavigatorKeyHome = GlobalKey<NavigatorState>();
   final shellNavigatorKeyPay = GlobalKey<NavigatorState>();
-  final shellNavigatorKeyGuests = GlobalKey<NavigatorState>();
   final shellNavigatorKeyMess = GlobalKey<NavigatorState>();
   final shellNavigatorKeySupport = GlobalKey<NavigatorState>();
-  final shellNavigatorKeyLogs = GlobalKey<NavigatorState>();
-  final shellNavigatorKeyAlerts = GlobalKey<NavigatorState>();
-  final shellNavigatorKeyProfile = GlobalKey<NavigatorState>();
+  final shellNavigatorKeyMore = GlobalKey<NavigatorState>();
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
@@ -60,6 +58,28 @@ GoRouter createRouter(AuthProvider authProvider) {
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const MessScanScreen(),
       ),
+      // Sub-screens pushed with back navigation
+      GoRoute(
+        path: '/guests',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const GuestsScreen(),
+      ),
+      GoRoute(
+        path: '/logs',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const LogsScreen(),
+      ),
+      GoRoute(
+        path: '/alerts',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: '/profile',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      // Main 5-tab shell navigation
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return TenantShellScreen(navigationShell: navigationShell);
@@ -84,15 +104,6 @@ GoRouter createRouter(AuthProvider authProvider) {
             ],
           ),
           StatefulShellBranch(
-            navigatorKey: shellNavigatorKeyGuests,
-            routes: [
-              GoRoute(
-                path: '/guests',
-                builder: (context, state) => const GuestsScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
             navigatorKey: shellNavigatorKeyMess,
             routes: [
               GoRoute(
@@ -111,29 +122,11 @@ GoRouter createRouter(AuthProvider authProvider) {
             ],
           ),
           StatefulShellBranch(
-            navigatorKey: shellNavigatorKeyLogs,
+            navigatorKey: shellNavigatorKeyMore,
             routes: [
               GoRoute(
-                path: '/logs',
-                builder: (context, state) => const LogsScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            navigatorKey: shellNavigatorKeyAlerts,
-            routes: [
-              GoRoute(
-                path: '/alerts',
-                builder: (context, state) => const NotificationsScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            navigatorKey: shellNavigatorKeyProfile,
-            routes: [
-              GoRoute(
-                path: '/profile',
-                builder: (context, state) => const ProfileScreen(),
+                path: '/more',
+                builder: (context, state) => const MoreScreen(),
               ),
             ],
           ),

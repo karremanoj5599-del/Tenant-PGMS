@@ -7,7 +7,10 @@ import '../../providers/theme_provider.dart';
 import '../../services/api_service.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_card.dart';
+import '../../models/tenant.dart';
 import '../../widgets/status_badge.dart';
+import '../../widgets/connection_problem_view.dart';
+import '../../config/api_config.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -20,6 +23,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final ApiService _apiService = ApiService();
   Map<String, dynamic>? _dashboardData;
   bool _loading = true;
+  String? _fetchError;
 
   @override
   void initState() {
@@ -28,14 +32,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _fetchDashboard() async {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    _apiService.setAuthToken(auth.token);
-    final data = await _apiService.getDashboard();
-    if (mounted) {
-      setState(() {
-        _dashboardData = data;
-        _loading = false;
-      });
+    setState(() {
+      _loading = _dashboardData == null;
+      _fetchError = null;
+    });
+
+    try {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      _apiService.setAuthToken(auth.token);
+      final data = await _apiService.getDashboard();
+      if (mounted) {
+        setState(() {
+          _dashboardData = data;
+          _loading = false;
+        });
+        if (data != null && data['tenant'] is Map) {
+          final updatedTenant = TenantInfo.fromJson(data['tenant'] as Map<String, dynamic>);
+          auth.updateTenant(updatedTenant);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _fetchError = 'Connection error: $e';
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -49,7 +71,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final billing = _dashboardData?['billing'] as Map<String, dynamic>?;
     final notices = (_dashboardData?['notices'] as List?) ?? [];
 
-    final rent = billing?['total_due'] ?? tenant?.rent ?? 8500.0;
+    final rent = billing?['total_due'] ?? tenant?.rent ?? 0.0;
     final dueDateStr = billing?['due_date']?.toString() ?? tenant?.dueDate ?? '5th of this month';
     final balance = (billing?['current_balance'] ?? rent) as num;
     final isPaid = balance <= 0;
@@ -73,7 +95,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: _loading
           ? Center(child: CircularProgressIndicator(color: colors.accent))
-          : RefreshIndicator(
+          : _fetchError != null && _dashboardData == null
+              ? ConnectionProblemView(
+                  serverUrl: ApiConfig.baseUrl,
+                  errorDetail: _fetchError,
+                  onRetry: _fetchDashboard,
+                  isFullScreen: false,
+                )
+              : RefreshIndicator(
               color: colors.accent,
               onRefresh: _fetchDashboard,
               child: ListView(
@@ -139,17 +168,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           children: [
                             _RoomPill(
                               icon: Icons.meeting_room,
-                              label: 'Room ${tenant?.room ?? '104'}',
+                              label: (tenant?.room != null && tenant!.room!.isNotEmpty && tenant.room != '—')
+                                  ? 'Room ${tenant.room}'
+                                  : 'Room Not Assigned',
                             ),
                             const SizedBox(width: 8),
                             _RoomPill(
                               icon: Icons.single_bed,
-                              label: 'Bed ${tenant?.bed ?? 'A'}',
+                              label: (tenant?.bed != null && tenant!.bed!.isNotEmpty && tenant.bed != '—')
+                                  ? 'Bed ${tenant.bed}'
+                                  : 'Bed —',
                             ),
                             const SizedBox(width: 8),
                             _RoomPill(
                               icon: Icons.group,
-                              label: tenant?.sharing ?? '2-Sharing',
+                              label: (tenant?.sharing != null && tenant!.sharing!.isNotEmpty && tenant.sharing != '—')
+                                  ? tenant.sharing!
+                                  : 'Coliving',
                             ),
                           ],
                         ),

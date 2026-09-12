@@ -63,7 +63,7 @@ class AuthProvider extends ChangeNotifier {
         return result.error ?? 'Invalid credentials.';
       }
     } catch (e) {
-      return 'Could not connect to server.';
+      return 'CONNECTION_ERROR: Could not connect to server ($e).';
     } finally {
       _isLoading = false;
       notifyListeners();
