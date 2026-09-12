@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/tenant.dart';
@@ -190,6 +191,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     width: double.infinity,
                     icon: Icons.calendar_today,
                     onPressed: _showVacateNoticeModal,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Financial & Statements Card
+            AppCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Financial Documents',
+                    style: TextStyle(
+                      fontSize: 16 * theme.uiScale,
+                      fontWeight: FontWeight.bold,
+                      color: colors.text,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'View payment history and download official PDF rent receipts.',
+                    style: TextStyle(fontSize: 12 * theme.uiScale, color: colors.textSecondary),
+                  ),
+                  const SizedBox(height: 14),
+                  AppButton(
+                    text: 'View Payment Receipts',
+                    variant: AppButtonVariant.outline,
+                    width: double.infinity,
+                    icon: Icons.receipt_long,
+                    onPressed: () => context.go('/pay'),
                   ),
                 ],
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/notification.dart';
@@ -83,81 +84,172 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           dateStr = DateFormat('dd MMM, hh:mm a').format(dt);
                         } catch (_) {}
 
+                        final titleLower = notif.title.toLowerCase();
+                        final bodyLower = notif.body.toLowerCase();
+                        final isOverdue = titleLower.contains('overdue') || bodyLower.contains('overdue');
+                        final isRentPayment = titleLower.contains('rent') ||
+                            bodyLower.contains('rent') ||
+                            notif.type.toLowerCase() == 'payment';
+
                         IconData icon;
                         Color iconColor;
-                        switch (notif.type.toLowerCase()) {
-                          case 'payment':
-                            icon = Icons.payment;
+                        String? badgeLabel;
+                        Color badgeBg = Colors.transparent;
+                        Color badgeText = colors.text;
+
+                        if (isOverdue) {
+                          icon = Icons.warning_amber_rounded;
+                          iconColor = colors.danger;
+                          badgeLabel = 'URGENT OVERDUE';
+                          badgeBg = colors.danger.withAlpha(30);
+                          badgeText = colors.danger;
+                        } else if (isRentPayment) {
+                          if (titleLower.contains('success') ||
+                              bodyLower.contains('recorded') ||
+                              titleLower.contains('receipt')) {
+                            icon = Icons.check_circle_outline;
                             iconColor = colors.success;
-                            break;
-                          case 'visitor':
-                            icon = Icons.badge;
-                            iconColor = colors.accent;
-                            break;
-                          default:
-                            icon = Icons.notifications;
+                            badgeLabel = 'CONFIRMED';
+                            badgeBg = colors.success.withAlpha(30);
+                            badgeText = colors.success;
+                          } else {
+                            icon = Icons.schedule_rounded;
                             iconColor = colors.warning;
+                            badgeLabel = 'RENT DUE';
+                            badgeBg = colors.warning.withAlpha(35);
+                            badgeText = colors.warning;
+                          }
+                        } else if (notif.type.toLowerCase() == 'visitor') {
+                          icon = Icons.badge_outlined;
+                          iconColor = colors.accent;
+                          badgeLabel = 'VISITOR';
+                          badgeBg = colors.accent.withAlpha(25);
+                          badgeText = colors.accent;
+                        } else {
+                          icon = Icons.notifications_none_rounded;
+                          iconColor = colors.accent;
                         }
 
                         return AppCard(
                           onTap: () => _markAsRead(notif),
-                          backgroundColor: notif.isRead ? colors.card : colors.accent.withAlpha(15),
-                          child: Row(
+                          backgroundColor: notif.isRead
+                              ? colors.card
+                              : (isOverdue
+                                  ? colors.danger.withAlpha(15)
+                                  : colors.accent.withAlpha(15)),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: iconColor.withAlpha(25),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(icon, color: iconColor, size: 20),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: iconColor.withAlpha(25),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(icon, color: iconColor, size: 22),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Expanded(
-                                          child: Text(
-                                            notif.title,
-                                            style: TextStyle(
-                                              fontSize: 15 * theme.uiScale,
-                                              fontWeight: notif.isRead ? FontWeight.w600 : FontWeight.bold,
-                                              color: colors.text,
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                notif.title,
+                                                style: TextStyle(
+                                                  fontSize: 15 * theme.uiScale,
+                                                  fontWeight: notif.isRead ? FontWeight.w600 : FontWeight.bold,
+                                                  color: isOverdue ? colors.danger : colors.text,
+                                                ),
+                                              ),
                                             ),
+                                            if (badgeLabel != null)
+                                              Container(
+                                                margin: const EdgeInsets.only(left: 6),
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                                decoration: BoxDecoration(
+                                                  color: badgeBg,
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: Text(
+                                                  badgeLabel,
+                                                  style: TextStyle(
+                                                    fontSize: 10 * theme.uiScale,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: badgeText,
+                                                    letterSpacing: 0.5,
+                                                  ),
+                                                ),
+                                              )
+                                            else if (!notif.isRead)
+                                              Container(
+                                                width: 8,
+                                                height: 8,
+                                                decoration: BoxDecoration(
+                                                  color: colors.accent,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Text(
+                                          notif.body,
+                                          style: TextStyle(
+                                            fontSize: 13 * theme.uiScale,
+                                            color: colors.textSecondary,
+                                            height: 1.4,
                                           ),
                                         ),
-                                        if (!notif.isRead)
-                                          Container(
-                                            width: 8,
-                                            height: 8,
-                                            decoration: BoxDecoration(
-                                              color: colors.accent,
-                                              shape: BoxShape.circle,
-                                            ),
-                                          ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          dateStr,
+                                          style: TextStyle(fontSize: 11 * theme.uiScale, color: colors.textMuted),
+                                        ),
                                       ],
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      notif.body,
-                                      style: TextStyle(
-                                        fontSize: 13 * theme.uiScale,
-                                        color: colors.textSecondary,
+                                  ),
+                                ],
+                              ),
+
+                              // Quick Action button for Rent / Overdue reminders
+                              if (isRentPayment && !notif.title.toLowerCase().contains('success')) ...[
+                                const SizedBox(height: 12),
+                                Divider(color: colors.separator, height: 1),
+                                const SizedBox(height: 10),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    ElevatedButton.icon(
+                                      onPressed: () {
+                                        _markAsRead(notif);
+                                        context.go('/pay');
+                                      },
+                                      icon: const Icon(Icons.account_balance_wallet_outlined, size: 16),
+                                      label: Text(
+                                        isOverdue ? 'Pay Overdue Rent Now' : 'Pay Rent Now',
+                                        style: const TextStyle(fontWeight: FontWeight.bold),
                                       ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      dateStr,
-                                      style: TextStyle(fontSize: 11 * theme.uiScale, color: colors.textMuted),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: isOverdue ? colors.danger : colors.accent,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        elevation: 0,
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         );

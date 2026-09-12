@@ -241,6 +241,11 @@ class ApiService {
     }
   }
 
+  String getReceiptUrl(int paymentId) {
+    final token = _tenantIdToken ?? '';
+    return '$_baseUrl/payments/$paymentId/receipt?token=$token';
+  }
+
   // ─── TICKETS ───────────────────────────────────────────────
   Future<List<Ticket>> getTickets() async {
     try {

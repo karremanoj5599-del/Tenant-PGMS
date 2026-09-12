@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/payment.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../services/api_service.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/status_badge.dart';
 
@@ -101,6 +103,34 @@ class ReceiptDialog extends StatelessWidget {
             _ReceiptRow(label: 'Date & Time', value: formattedDate),
 
             const SizedBox(height: 24),
+            AppButton(
+              text: 'Download Official PDF',
+              width: double.infinity,
+              icon: Icons.picture_as_pdf,
+              onPressed: () async {
+                final api = ApiService();
+                final url = api.getReceiptUrl(payment.id);
+                try {
+                  final uri = Uri.parse(url);
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  } else {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Could not open browser to download receipt.')),
+                      );
+                    }
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Download failed: $e')),
+                    );
+                  }
+                }
+              },
+            ),
+            const SizedBox(height: 10),
             AppButton(
               text: 'Close Receipt',
               width: double.infinity,

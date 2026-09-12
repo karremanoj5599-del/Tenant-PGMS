@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/billing.dart';
 import '../../models/payment.dart';
 import '../../providers/auth_provider.dart';
@@ -74,6 +75,28 @@ class _PayScreenState extends State<PayScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(result.error ?? 'Payment failed.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _downloadReceipt(int paymentId) async {
+    final url = _apiService.getReceiptUrl(paymentId);
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not open browser to download receipt.')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Download failed: $e')),
         );
       }
     }
@@ -242,6 +265,12 @@ class _PayScreenState extends State<PayScreen> {
                                   style: TextStyle(fontSize: 11 * theme.uiScale, color: colors.textMuted),
                                 ),
                               ],
+                            ),
+                            const SizedBox(width: 4),
+                            IconButton(
+                              icon: Icon(Icons.picture_as_pdf_outlined, size: 22, color: colors.accent),
+                              tooltip: 'Download PDF Receipt',
+                              onPressed: () => _downloadReceipt(p.id),
                             ),
                           ],
                         ),
